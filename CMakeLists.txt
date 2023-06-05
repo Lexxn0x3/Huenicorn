@@ -8,6 +8,7 @@ project(${PROJECT_NAME} VERSION 1.0.1)
 
 
 set(BUILD_DOCUMENTATION FALSE CACHE BOOL "Build documentation")
+set(BUILD_TESTS FALSE CACHE BOOL "Build tests")
 
 
 set(DISPLAYED_VERSION ${PROJECT_VERSION})
@@ -84,6 +85,11 @@ target_compile_options(${BINARY_NAME} PRIVATE
   -Wno-deprecated-declarations
   -Wno-deprecated-copy
 )
+
+
+if(${BUILD_TESTS})
+  include(tests/AddTests.cmake)
+endif(${BUILD_TESTS})
 
 
 if(${BUILD_DOCUMENTATION})
