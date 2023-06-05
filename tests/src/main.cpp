@@ -18,12 +18,12 @@ int main()
   Color white{max, max, max};
 
   vec2 coordinate{0, 0};
-  Color::GamutCoordinates gammutCoordinates = {coordinate, coordinate, coordinate};
+  Color::GamutCoordinates gamutCoordinates = {coordinate, coordinate, coordinate};
 
   cout << "black : " << to_string(black.asRGB()) << endl;
-  cout << "        " << to_string(black.asXYZ(gammutCoordinates)) << endl;
+  cout << "        " << to_string(black.asXYZ(gamutCoordinates)) << endl;
   cout << "white : " << to_string(white.asRGB()) << endl;
-  cout << "        " << to_string(white.asXYZ(gammutCoordinates)) << endl;
+  cout << "        " << to_string(white.asXYZ(gamutCoordinates)) << endl;
 
 
   cout << "Tests" << endl;
