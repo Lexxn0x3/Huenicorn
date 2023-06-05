@@ -2,6 +2,8 @@
 
 #include <cstdint>
 
+#include <array>
+
 #include <glm/vec3.hpp>
 #include <glm/vec2.hpp>
 
@@ -61,11 +63,11 @@ namespace Huenicorn
 
 
     /**
-     * @brief Returns a rgb value in normalized 0-1 floating range
+     * @brief Returns a rgb value as normalized 0-1 floating range
      * 
-     * @return glm::vec3 normalized color
+     * @return glm::vec3 RGB color as 0-1 floating range
      */
-    glm::vec3 toNormalized() const
+    glm::vec3 asRGB() const
     {
       return glm::vec3(
         m_r / Color::Max,
@@ -76,15 +78,15 @@ namespace Huenicorn
 
 
     /**
-     * @brief Returns a XY conversion of RGB color
+     * @brief Returns a XYZ conversion of RGB color
      * 
-     * @param gamutCoordinates Boundaries of the gammut
-     * @return glm::vec2 XY color coordinates
+     * @param gamutCoordinates Boundaries of the gamut
+     * @return glm::vec3 XYZ color coordinates
      */
-    glm::vec2 toXY(const GamutCoordinates& gamutCoordinates) const
+    glm::vec3 asXYZ(const GamutCoordinates& gamutCoordinates) const
     {
       // Following https://gist.github.com/popcorn245/30afa0f98eea1c2fd34d
-      glm::vec3 normalizedRgb = this->toNormalized();
+      glm::vec3 normalizedRgb = this->asRGB();
 
       // Apply gamma
       for(int i = 0; i < normalizedRgb.length(); i++){
@@ -102,13 +104,14 @@ namespace Huenicorn
       float Z = r * 0.000000f + g * 0.053077f + b * 1.035763f;
 
       float sum = X + Y + Z;
-      
-      // White coordinates to be neutral in case of black (skip dividing by zero)
-      glm::vec2 xy = glm::vec2(0.315f, 0.3312f);
+
+      // Black coordinates to be neutral in case of black (skip dividing by zero)
+      glm::vec3 xyz = glm::vec3(0.315f, 0.3312f, 0);
 
       if(sum != 0.f){
-        xy[0] = X / sum;
-        xy[1] = Y / sum;
+        xyz[0] = X / sum;
+        xyz[1] = Y / sum;
+        xyz[2] = Z;
       }
 
       // Checking xy boundaries
@@ -116,10 +119,10 @@ namespace Huenicorn
       /*
       if(!_xyInGamut(xy, gamutCoordinates)){
         // ToDo implement at some point
-        // This cas has not been observed yet
+        // This case has not been observed yet for screen color domain
       }
       */
-      return xy;
+      return xyz;
     }
 
 
@@ -139,9 +142,9 @@ namespace Huenicorn
     /**
      * @brief Computes a sign check on boundaries
      * 
-     * @param a Gammut vertex a
-     * @param b Gammut vertex b
-     * @param c Gammut vertex c
+     * @param a Gamut vertex a
+     * @param b Gamut vertex b
+     * @param c Gamut vertex c
      * @return float Signed value for boundary check
      */
     static inline float _sign(const glm::vec2& a, const glm::vec2& b, const glm::vec2& c)
@@ -151,12 +154,12 @@ namespace Huenicorn
 
 
     /**
-     * @brief Returns whether the XY color coordinates fits in gammut
+     * @brief Returns whether the XY color coordinates fits in gamut
      * 
      * @param xy 
      * @param gamutCoordinates 
-     * @return true XY color fits in gammut boundaries
-     * @return false XY color doesn't fit in gammut boundaries
+     * @return true XY color fits in gamut boundaries
+     * @return false XY color doesn't fit in gamut boundaries
      */
     inline static bool _xyInGamut(const glm::vec2& xy, const GamutCoordinates& gamutCoordinates)
     {

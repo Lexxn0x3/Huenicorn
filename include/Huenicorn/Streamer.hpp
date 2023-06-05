@@ -17,26 +17,23 @@ namespace Huenicorn
    */
   class Streamer
   {
+  public:
+    enum ColorSpace : char
+    {
+      RGB = 0,
+      XYZ = 1
+    };
+
+  private:
     struct HuestreamHeader
     {
       char protocolName[9] = {'H', 'u', 'e', 'S', 't', 'r', 'e', 'a', 'm'};
       char version[2] = {0x02, 0x00};
       char sequenceId = 0;
       char reserved1[2] = {0, 0};
-      char colorSpace = 0x00;
+      ColorSpace colorSpace = ColorSpace::RGB;
       char reserved2 = 0;
       char entertainmentConfigurationId[36];
-
-
-      /**
-       * @brief Sets the colorSpace field
-       * 
-       * @param _colorSpace 0 for RGB, 1 for XY
-       */
-      void setColorSpace(char _colorSpace)
-      {
-        this->colorSpace = _colorSpace;
-      }
 
 
       /**
@@ -126,6 +123,18 @@ namespace Huenicorn
     Streamer(const Credentials& credentials, const std::string& bridgeAddress);
 
 
+    // Getter
+    /**
+     * @brief Gets the current color space
+     * 
+     * @return ColorSpace 
+     */
+    ColorSpace colorSpace() const
+    {
+      return m_header.colorSpace;
+    }
+
+
     // Setters
     /**
      * @brief Sets the entertainment configuration header field
@@ -133,6 +142,17 @@ namespace Huenicorn
      * @param entertainmentConfigurationId ID of the entertainment configuration to set to the request header
      */
     void setEntertainmentConfigurationId(const std::string& entertainmentConfigurationId);
+
+
+    /**
+     * @brief Sets the colorSpace field
+     * 
+     * @param _colorSpace 0 for RGB, 1 for XY
+     */
+    void setColorSpace(ColorSpace colorSpace)
+    {
+      m_header.colorSpace = colorSpace;
+    }
 
 
     // Methods

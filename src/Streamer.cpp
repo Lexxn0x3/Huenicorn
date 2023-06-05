@@ -34,9 +34,9 @@ namespace Huenicorn
     for(const auto channel : channels){
       HuestreamPayload payload;
       payload.setChannelId(channel.id);
-      payload.setR(static_cast<uint16_t>(0xffff * channel.r));
-      payload.setG(static_cast<uint16_t>(0xffff * channel.g));
-      payload.setB(static_cast<uint16_t>(0xffff * channel.b));
+      payload.setR(static_cast<uint16_t>(0xffff * channel.colorData[0]));
+      payload.setG(static_cast<uint16_t>(0xffff * channel.colorData[1]));
+      payload.setB(static_cast<uint16_t>(0xffff * channel.colorData[2]));
 
       requestBuffer.insert(requestBuffer.end(), reinterpret_cast<char*>(&payload), reinterpret_cast<char*>(&payload) + sizeof(HuestreamPayload));
     }

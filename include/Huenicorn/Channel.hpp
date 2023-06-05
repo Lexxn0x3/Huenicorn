@@ -3,6 +3,7 @@
 #include <unordered_map>
 #include <vector>
 
+#include <glm/vec3.hpp>
 #include <glm/exponential.hpp>
 
 #include <Huenicorn/UV.hpp>
@@ -17,16 +18,16 @@ namespace Huenicorn
 
 
   /**
-   * @brief Channel structure matching Hue streaming protocol
+   * @brief ChannelStream structure
    * 
    */
   struct ChannelStream
   {
     uint8_t id;
-    float r{0.0};
-    float g{0.0};
-    float b{0.0};
+    glm::vec3 colorData;
   };
+
+
   using ChannelStreams = std::vector<ChannelStream>;
 
 
