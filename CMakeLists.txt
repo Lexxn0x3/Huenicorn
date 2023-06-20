@@ -41,6 +41,7 @@ add_executable(${BINARY_NAME}
   src/X11Grabber.cpp
   include/Huenicorn/ApiTools.hpp
   include/Huenicorn/Channel.hpp
+  include/Huenicorn/ColorUtils.hpp
   include/Huenicorn/Color.hpp
   include/Huenicorn/Config.hpp
   include/Huenicorn/Credentials.hpp

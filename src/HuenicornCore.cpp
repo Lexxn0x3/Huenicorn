@@ -530,7 +530,7 @@ namespace Huenicorn
 
         case Streamer::ColorSpace::XYZ:
         {
-          glm::vec3 xyzColor = color.asXYZ({}); // ToDo : Get gamut coordinates
+          glm::vec3 xyzColor = color.asXYZ(); // ToDo :  Get gamut coordinates to enable clamp
           outputColor = {xyzColor.x, xyzColor.y, glm::pow(xyzColor.z, channel.gammaExponent())};
           break;
         }

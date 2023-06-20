@@ -3,10 +3,13 @@
 #include <cstdint>
 
 #include <array>
+#include <optional>
 
 #include <glm/vec3.hpp>
 #include <glm/vec2.hpp>
+//#include <glm/gtx/string_cast.hpp>
 
+#include <Huenicorn/ColorUtils.hpp>
 
 namespace Huenicorn
 {
@@ -20,7 +23,6 @@ namespace Huenicorn
     using ChannelDepth = uint8_t;
     static constexpr float Max = static_cast<float>(std::numeric_limits<ChannelDepth>().max());
 
-    using GamutCoordinates = std::array<glm::vec2, 3>;
 
     /**
      * @brief Color constructor
@@ -80,18 +82,17 @@ namespace Huenicorn
     /**
      * @brief Returns a XYZ conversion of RGB color
      * 
-     * @param gamutCoordinates Boundaries of the gamut
+     * @param gamutCoordinates Optional boundaries of the gamut. Discard check/clamp if not provided
      * @return glm::vec3 XYZ color coordinates
      */
-    glm::vec3 asXYZ(const GamutCoordinates& gamutCoordinates) const
+    glm::vec3 asXYZ(const std::optional<ColorUtils::GamutCoordinates>& gamutCoordinates = std::nullopt) const
     {
       // Following https://gist.github.com/popcorn245/30afa0f98eea1c2fd34d
       glm::vec3 normalizedRgb = this->asRGB();
 
       // Apply gamma
       for(int i = 0; i < normalizedRgb.length(); i++){
-        auto& channel = normalizedRgb[i];
-        channel = (channel > 0.04045f) ? pow((channel + 0.055f) / (1.0f + 0.055f), 2.4f) : (channel / 12.92f);
+        _applyGamma(normalizedRgb[i]);
       }
 
       // Apply some magic "Wide RGB D65 conversion formula"
@@ -99,29 +100,27 @@ namespace Huenicorn
       float& g = normalizedRgb.g;
       float& b = normalizedRgb.b;
 
-      float X = r * 0.649926f + g * 0.103455f + b * 0.197109f;
-      float Y = r * 0.234327f + g * 0.743075f + b * 0.022598f;
-      float Z = r * 0.000000f + g * 0.053077f + b * 1.035763f;
+      float x = r * 0.649926f + g * 0.103455f + b * 0.197109f;
+      float y = r * 0.234327f + g * 0.743075f + b * 0.022598f;
+      float z = r * 0.000000f + g * 0.053077f + b * 1.035763f;
 
-      float sum = X + Y + Z;
 
       // Black coordinates to be neutral in case of black (skip dividing by zero)
-      glm::vec3 xyz = glm::vec3(0.315f, 0.3312f, 0);
+      glm::vec3 xyz{0.31273010828044345f, 0.3290198826715099f, 0.0f};
 
+      float sum = x + y + z;
       if(sum != 0.f){
-        xyz[0] = X / sum;
-        xyz[1] = Y / sum;
-        xyz[2] = Z;
+        xyz[0] = x / sum;
+        xyz[1] = y / sum;
+        xyz[2] = y;
       }
 
-      // Checking xy boundaries
-      (void)gamutCoordinates;
-      /*
-      if(!_xyInGamut(xy, gamutCoordinates)){
-        // ToDo implement at some point
-        // This case has not been observed yet for screen color domain
+      glm::vec2 xy = {xyz.x, xyz.y};
+      if(gamutCoordinates.has_value() && !ColorUtils::xyInGamut(xy, gamutCoordinates.value())){
+        glm::vec2 xyClamped = ColorUtils::clampToGamut(xy, gamutCoordinates.value());
+        xyz = glm::vec3{xyClamped.x, xyClamped.y, xyz.z};
       }
-      */
+
       return xyz;
     }
 
@@ -137,48 +136,20 @@ namespace Huenicorn
     }
 
 
+  /**
+   * @brief Applies selective gamma to input value
+   * 
+     * @param channel Channel value to alterate
+   * 
+   */
   private:
-    // Private methods
-    /**
-     * @brief Computes a sign check on boundaries
-     * 
-     * @param a Gamut vertex a
-     * @param b Gamut vertex b
-     * @param c Gamut vertex c
-     * @return float Signed value for boundary check
-     */
-    static inline float _sign(const glm::vec2& a, const glm::vec2& b, const glm::vec2& c)
+    static void _applyGamma(float& channel)
     {
-      return (a.x - c.x) * (b.y - c.y) - (b.x - c.x) * (a.y - c.y);
+      channel = (channel > 0.04045f) ? pow((channel + 0.055f) / (1.0f + 0.055f), 2.4f) : (channel / 12.92f);
     }
 
 
-    /**
-     * @brief Returns whether the XY color coordinates fits in gamut
-     * 
-     * @param xy 
-     * @param gamutCoordinates 
-     * @return true XY color fits in gamut boundaries
-     * @return false XY color doesn't fit in gamut boundaries
-     */
-    inline static bool _xyInGamut(const glm::vec2& xy, const GamutCoordinates& gamutCoordinates)
-    {
-      bool has_neg, has_pos;
-
-      const auto& a = gamutCoordinates.at(0);
-      const auto& b = gamutCoordinates.at(1);
-      const auto& c = gamutCoordinates.at(2);
-
-      float d1 = _sign(xy, a, b);
-      float d2 = _sign(xy, b, c);
-      float d3 = _sign(xy, c, a);
-
-      has_neg = (d1 < 0) || (d2 < 0) || (d3 < 0);
-      has_pos = (d1 > 0) || (d2 > 0) || (d3 > 0);
-
-      return !(has_neg && has_pos);
-    }
-
+  private:
     // Attributes
     ChannelDepth m_r;
     ChannelDepth m_g;
