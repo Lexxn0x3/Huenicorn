@@ -5,9 +5,9 @@
 #include <array>
 #include <optional>
 
+#include <glm/mat3x3.hpp>
 #include <glm/vec3.hpp>
 #include <glm/vec2.hpp>
-//#include <glm/gtx/string_cast.hpp>
 
 #include <Huenicorn/ColorUtils.hpp>
 
@@ -95,24 +95,18 @@ namespace Huenicorn
         _applyGamma(normalizedRgb[i]);
       }
 
-      // Apply some magic "Wide RGB D65 conversion formula"
-      float& r = normalizedRgb.r;
-      float& g = normalizedRgb.g;
-      float& b = normalizedRgb.b;
+      // Apply "Wide RGB D65 factors"
+      glm::vec3 xyz = normalizedRgb * ColorUtils::D65Factors;
 
-      float x = r * 0.649926f + g * 0.103455f + b * 0.197109f;
-      float y = r * 0.234327f + g * 0.743075f + b * 0.022598f;
-      float z = r * 0.000000f + g * 0.053077f + b * 1.035763f;
-
-
-      // Black coordinates to be neutral in case of black (skip dividing by zero)
-      glm::vec3 xyz{0.31273010828044345f, 0.3290198826715099f, 0.0f};
-
-      float sum = x + y + z;
+      float sum = xyz.x + xyz.y + xyz.z;
       if(sum != 0.f){
-        xyz[0] = x / sum;
-        xyz[1] = y / sum;
-        xyz[2] = y;
+        xyz.z = xyz.y;
+        xyz.x /= sum;
+        xyz.y /= sum;
+      }
+      else{
+        // Black coordinates to be neutral in case of black (skip dividing by zero)
+        xyz = {0.31273010828044345f, 0.3290198826715099f, 0.0f};
       }
 
       glm::vec2 xy = {xyz.x, xyz.y};

@@ -12,6 +12,14 @@ namespace Huenicorn
     using GamutCoordinates = std::array<glm::vec2, 3>;
 
 
+    // Wide RGB D65 factors
+    static constexpr glm::mat3x3 D65Factors = {
+      {0.649926f, 0.103455f, 0.197109f},
+      {0.234327f, 0.743075f, 0.022598f},
+      {0.000000f, 0.053077f, 1.035763f}
+    };
+
+
     /**
      * @brief Computes a sign check on boundaries
      * 
@@ -34,7 +42,7 @@ namespace Huenicorn
      * @return true XY color fits in gamut boundaries
      * @return false XY color doesn't fit in gamut boundaries
      */
-    inline static bool xyInGamut(const glm::vec2& xy, const ColorUtils::GamutCoordinates& gamutCoordinates)
+    static inline bool xyInGamut(const glm::vec2& xy, const ColorUtils::GamutCoordinates& gamutCoordinates)
     {
       bool has_neg, has_pos;
 
