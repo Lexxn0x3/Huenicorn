@@ -446,6 +446,7 @@ namespace Huenicorn
       lock_guard lock(m_streamerMutex);
       m_streamer = make_unique<Streamer>(credentials, m_config.bridgeAddress().value());
       m_streamer->setEntertainmentConfigurationId(m_selector->currentEntertainmentConfigurationId().value());
+      m_streamer->setColorSpace(Streamer::ColorSpace::XYZ);
     }
 
     auto profilePath = _profilePath();
@@ -504,8 +505,8 @@ namespace Huenicorn
         continue;
       }
 
+      Color color;
       if(channel.state() == Channel::State::PendingShutdown){
-        channelStreams.push_back({channelId, 0, 0, 0});
         channel.acknowledgeShutdown();
       }
       else{
@@ -515,13 +516,27 @@ namespace Huenicorn
         glm::ivec2 b{uvs.max.x * m_cvImage.cols, uvs.max.y * m_cvImage.rows};
 
         ImageProcessing::getSubImage(m_cvImage, a, b).copyTo(subframeImage);
-        Color color = ImageProcessing::getDominantColors(subframeImage, 1).front();
-
-        glm::vec3 normalized = color.toNormalized();
-        vec3 correctedColor = glm::pow(normalized, glm::vec3(channel.gammaExponent()));
-
-        channelStreams.push_back({channelId, correctedColor.r, correctedColor.g, correctedColor.b});
+        color = ImageProcessing::getDominantColors(subframeImage, 1).front();
       }
+
+      vec3 outputColor;
+      switch(m_streamer->colorSpace()){
+        case Streamer::ColorSpace::RGB:
+        {
+          glm::vec3 rgbColor = color.asRGB();
+          outputColor = glm::pow(rgbColor, glm::vec3(channel.gammaExponent()));
+          break;
+        }
+
+        case Streamer::ColorSpace::XYZ:
+        {
+          glm::vec3 xyzColor = color.asXYZ(); // ToDo :  Get gamut coordinates to enable clamp
+          outputColor = {xyzColor.x, xyzColor.y, glm::pow(xyzColor.z, channel.gammaExponent())};
+          break;
+        }
+      }
+
+      channelStreams.push_back({channelId, outputColor});
     }
 
     {

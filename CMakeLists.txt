@@ -8,6 +8,7 @@ project(${PROJECT_NAME} VERSION 1.0.2)
 
 
 set(BUILD_DOCUMENTATION FALSE CACHE BOOL "Build documentation")
+set(BUILD_TESTS FALSE CACHE BOOL "Build tests")
 
 
 set(DISPLAYED_VERSION ${PROJECT_VERSION})
@@ -40,6 +41,7 @@ add_executable(${BINARY_NAME}
   src/X11Grabber.cpp
   include/Huenicorn/ApiTools.hpp
   include/Huenicorn/Channel.hpp
+  include/Huenicorn/ColorUtils.hpp
   include/Huenicorn/Color.hpp
   include/Huenicorn/Config.hpp
   include/Huenicorn/Credentials.hpp
@@ -84,6 +86,11 @@ target_compile_options(${BINARY_NAME} PRIVATE
   -Wno-deprecated-declarations
   -Wno-deprecated-copy
 )
+
+
+if(${BUILD_TESTS})
+  include(tests/AddTests.cmake)
+endif(${BUILD_TESTS})
 
 
 if(${BUILD_DOCUMENTATION})
