@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 3.0.0)
 set(PROJECT_NAME huenicorn)
 set(BINARY_NAME huenicorn)
 
-project(${PROJECT_NAME} VERSION 1.0.2)
+project(${PROJECT_NAME} VERSION 1.0.3)
 #set(RC_NUMBER 1)
 
 

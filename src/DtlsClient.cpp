@@ -3,17 +3,9 @@
 #include <stdexcept>
 #include <iostream>
 
-// Begin MbedTLS part
-#ifndef MBEDTLS_CONFIG_FILE
-#include <mbedtls/config.h>
-#else
-#include MBEDTLS_CONFIG_FILE
-#endif
-
 #ifdef MBEDTLS_PLATFORM_C
 #include <mbedtls/platform.h>
 #endif
-// End MbedTLS part
 
 
 using namespace std;

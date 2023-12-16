@@ -16,11 +16,11 @@ Huenicorn provides a simple web interface to assign specific portions of screen 
 
 ## Project status
 
-Huenicorn 1.0.2 is available.
+Huenicorn 1.0.3 is available.
 
 This revision brings
 
-* Significant CPU workload reduction
+* Switch Mbed-TLS to new major version
 
 ## Getting Started
 
@@ -134,7 +134,10 @@ Huenicorn can be shut down through the web interface or by sending a termination
 Additionnal information and news can be found on [Huenicorn.org](http://huenicorn.org), the official website of the project.
 
 ## Version history
-
+* 1.0.3
+- * Moving to Mbed-TLS 3.4
+* 1.0.2
+  * Performance improvement
 * 1.0.1
   * Better reliability and documentation
 * 1.0.0
