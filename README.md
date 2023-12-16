@@ -40,6 +40,22 @@ This revision brings
 * [Mbed-TLS](https://github.com/Mbed-TLS/mbedtls)
 * [GLM](https://github.com/g-truc/glm)
 
+
+<details>
+<summary>Dependencies on OpenSUSE Tumbleweed</summary>
+<br/>
+
+These dependencies needed to be installed on OpenSUSE Tumbleweed 20231011 to build and run Huenicorn:  
+
+```bash
+sudo zypper install opencv-devel libopencv408 python311-jsonschema glm-devel nlohmann_json-devel
+```
+
+Additionally you have to build the curlpp, Restbed and Mbed-TLS from source from the links above.   
+Follow the build instructions in their respective README files and copy them to the appropriate place, as some of them don't do that automatically (usually /usr/local/lib64/ for libraries (check LD_LIBRARY_PATH) or /usr/local/include/ for includes)
+
+</details>
+
 ### Compiling Huenicorn
 
 Make sure the abovementionned libraries are installed (preferably through your system's package manager)
