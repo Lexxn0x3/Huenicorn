@@ -2,6 +2,7 @@
 #include <array>
 
 #include <glm/vec2.hpp>
+#include <glm/mat3x3.hpp>
 #include <glm/geometric.hpp>
 
 
@@ -28,7 +29,7 @@ namespace Huenicorn
      * @param c Gamut vertex c
      * @return float Signed value for boundary check
      */
-    static inline float sign(const glm::vec2& a, const glm::vec2& b, const glm::vec2& c)
+    inline static float sign(const glm::vec2& a, const glm::vec2& b, const glm::vec2& c)
     {
       return (a.x - c.x) * (b.y - c.y) - (b.x - c.x) * (a.y - c.y);
     }
@@ -42,7 +43,7 @@ namespace Huenicorn
      * @return true XY color fits in gamut boundaries
      * @return false XY color doesn't fit in gamut boundaries
      */
-    static inline bool xyInGamut(const glm::vec2& xy, const ColorUtils::GamutCoordinates& gamutCoordinates)
+    inline static bool xyInGamut(const glm::vec2& xy, const ColorUtils::GamutCoordinates& gamutCoordinates)
     {
       bool has_neg, has_pos;
 
@@ -68,7 +69,7 @@ namespace Huenicorn
      * @param gamut Coordinates of the gamut triangle
      * @return glm::vec2 Clamped xy coordinates
      */
-    static glm::vec2 clampToGamut(const glm::vec2& xy, const GamutCoordinates& gamut)
+    inline static glm::vec2 clampToGamut(const glm::vec2& xy, const GamutCoordinates& gamut)
     {
       // https://stackoverflow.com/questions/2924795/fastest-way-to-compute-point-to-triangle-distance-in-3d
       const glm::vec2& p = xy;

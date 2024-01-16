@@ -10,6 +10,8 @@
 #include <Huenicorn/WebUIBackend.hpp>
 #include <Huenicorn/JsonSerializer.hpp>
 
+#include <glm/gtx/string_cast.hpp>
+
 
 using namespace nlohmann;
 using namespace glm;
@@ -390,6 +392,18 @@ namespace Huenicorn
     for(const auto& [id, channel] : m_selector->currentEntertainmentConfiguration().channels()){
       bool found = false;
       const auto& members = ApiTools::matchDevices(entertainmentConfigurationsChannels.at(m_selector->currentEntertainmentConfigurationId().value()).at(id), devices);
+
+      /*
+      GamutCoordinates gc = GamutCoordinates{
+        vec2{1.f, 1.f},
+        vec2{1.f, 1.f},
+        vec2{1.f, 1.f}
+      };
+      */
+
+      //const GamutCoordinates& gc = channel.gamutCoordinates();
+      //const GamutCoordinates& gc = devices.at channel.gamutCoordinates();
+
       for(const auto& jsonProfileChannel : jsonChannels){
         if(jsonProfileChannel.at("channelId") == id){
           bool active = jsonProfileChannel.at("active");
@@ -399,9 +413,14 @@ namespace Huenicorn
           float uvBx = jsonUVs.at("uvB").at("x");
           float uvBy = jsonUVs.at("uvB").at("y");
 
+          vector<Device> deviceMembers;
+          for(const auto& member : members){
+            deviceMembers.push_back(member.second);
+          }
+
           UVs uvs = {{uvAx, uvAy}, {uvBx, uvBy}};
           float gammaFactor = jsonProfileChannel.at("gammaFactor");
-          channels.emplace(id, Channel{active, members, gammaFactor, uvs});
+          channels.emplace(id, Channel{active, deviceMembers, gammaFactor, {}, uvs});
 
           found = true;
           break;
@@ -409,7 +428,7 @@ namespace Huenicorn
       }
 
       if(!found){
-        channels.emplace(id, Channel{false, members, 0.0f});
+        //channels.emplace(id, Channel{false, members, 0.0f});
       }
     }
 
@@ -447,6 +466,7 @@ namespace Huenicorn
       m_streamer = make_unique<Streamer>(credentials, m_config.bridgeAddress().value());
       m_streamer->setEntertainmentConfigurationId(m_selector->currentEntertainmentConfigurationId().value());
       m_streamer->setColorSpace(Streamer::ColorSpace::XYZ);
+      //m_streamer->setColorSpace(Streamer::ColorSpace::RGB);
     }
 
     auto profilePath = _profilePath();
@@ -530,8 +550,18 @@ namespace Huenicorn
 
         case Streamer::ColorSpace::XYZ:
         {
+          //ColorUtils::GamutCoordinates gamutCoordinates = channel.gamutCoordinates();
+          //glm::vec3 xyzColor = color.asXYZ(gamutCoordinates);
           glm::vec3 xyzColor = color.asXYZ(); // ToDo :  Get gamut coordinates to enable clamp
-          outputColor = {xyzColor.x, xyzColor.y, glm::pow(xyzColor.z, channel.gammaExponent())};
+
+          /*
+          for(const auto& vec : gamutCoordinates){
+            cout << glm::to_string(vec) << endl;
+          }
+          */
+
+          //outputColor = {xyzColor.x, xyzColor.y, glm::pow(xyzColor.z, channel.gammaExponent())};
+          outputColor = {xyzColor.x, xyzColor.y, xyzColor.z};
           break;
         }
       }

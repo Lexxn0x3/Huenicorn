@@ -8,6 +8,7 @@
 
 #include <Huenicorn/UV.hpp>
 #include <Huenicorn/Device.hpp>
+#include <Huenicorn/ColorUtils.hpp>
 
 
 namespace Huenicorn
@@ -54,7 +55,7 @@ namespace Huenicorn
      * @param gammaFactor Gamma factor of the light
      * @param uvs UVs of the screen portion
      */
-    Channel(bool active, const std::vector<Device>& devices, float gammaFactor, const UVs& uvs = {{0, 0}, {1, 1}});
+    Channel(bool active, const std::vector<Device>& devices, float gammaFactor, const ColorUtils::GamutCoordinates& gamutCoordinates = {}, const UVs& uvs = {{0, 0}, {1, 1}});
 
 
     // Getters
@@ -85,6 +86,13 @@ namespace Huenicorn
      * @return const std::vector<Device>& 
      */
     const std::vector<Device>& devices() const;
+
+
+    const ColorUtils::GamutCoordinates& gamutCoordinates() const
+    {
+      return m_gamutCoordinates;
+    }
+
 
     /**
      * @brief Returns the exponent factor for gamma
@@ -136,6 +144,7 @@ namespace Huenicorn
     // Attributes
     State m_state{State::Inactive};
     std::vector<Device> m_devices;
+    ColorUtils::GamutCoordinates m_gamutCoordinates;
     float m_gammaFactor{0.0};
     UVs m_uvs{};
   };

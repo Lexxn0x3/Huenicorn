@@ -2,13 +2,14 @@
 
 #include <string>
 #include <unordered_map>
-//#include <array>
+#include <array>
 
-//#include <glm/vec2.hpp>
+#include <glm/vec2.hpp>
 
 namespace Huenicorn
 {
-  //using GamutCoordinates = std::array<glm::vec2, 3>;
+  using GamutCoordinates = std::array<glm::vec2, 3>;
+
   /**
    * @brief Device data structure
    * 
@@ -18,7 +19,7 @@ namespace Huenicorn
     std::string id;
     std::string name;
     std::string type;
-    // GamutCoordinates gamutCoordinates;// ToDo
+    GamutCoordinates gamutCoordinates;
   };
 
   using Devices = std::unordered_map<std::string, Device>;

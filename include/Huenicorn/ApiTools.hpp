@@ -56,7 +56,7 @@ namespace Huenicorn
      * @param devices Devices data
      * @return std::vector<Device> List of matched data for each device
      */
-    std::vector<Device> matchDevices(const MembersIds& membersIds, const Devices& devices);
+    std::vector<std::pair<std::string, Device>> matchDevices(const MembersIds& membersIds, const Devices& devices);
 
     /**
      * @brief Set the streaming state of the entertainment configuration on the Hue bridge

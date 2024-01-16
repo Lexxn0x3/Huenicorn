@@ -5,9 +5,10 @@
 
 namespace Huenicorn
 {
-  Channel::Channel(bool active, const std::vector<Device>& devices, float gammaFactor, const UVs& uvs):
+  Channel::Channel(bool active, const std::vector<Device>& devices, float gammaFactor, const ColorUtils::GamutCoordinates& gamutCoordinates, const UVs& uvs):
   m_state(active ? State::Active : State::Inactive),
   m_devices(devices),
+  m_gamutCoordinates(gamutCoordinates),
   m_gammaFactor(gammaFactor),
   m_uvs(uvs)
   {}
