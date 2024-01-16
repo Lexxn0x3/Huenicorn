@@ -10,20 +10,17 @@ Huenicorn provides a simple web interface to assign specific portions of screen 
 
 ### Screenshot
 
-![Screenshot](screenshots/HuenicornFullWebUI.png)
-*Huenicorn Light Manager user interface*
+| ![Screenshot](screenshots/HuenicornFullWebUI.png) |
+|:--:|
+| *Caption: Huenicorn Light Manager user interface* |
 
 ## Project status
 
-Huenicorn 1.0.1 is now ready and available.
+Huenicorn 1.0.3 is available.
 
 This revision brings
 
-* Fix for an important reliability bug on release mode for some compilers
-* Add config parameter to bind REST backend to given IP
-* Fix webroot file access
-* Better documentation (with available Doxygen generation routine in CMake)
-* Small UI changes
+* Switch Mbed-TLS to new major version
 
 ## Getting Started
 
@@ -42,6 +39,22 @@ This revision brings
 * [Restbed](https://github.com/Corvusoft/restbed)
 * [Mbed-TLS](https://github.com/Mbed-TLS/mbedtls)
 * [GLM](https://github.com/g-truc/glm)
+
+
+<details>
+<summary>Dependencies on OpenSUSE Tumbleweed</summary>
+<br/>
+
+These dependencies needed to be installed on OpenSUSE Tumbleweed 20231011 to build and run Huenicorn:  
+
+```bash
+sudo zypper install opencv-devel libopencv408 python311-jsonschema glm-devel nlohmann_json-devel
+```
+
+Additionally you have to build the curlpp, Restbed and Mbed-TLS from source from the links above.   
+Follow the build instructions in their respective README files and copy them to the appropriate place, as some of them don't do that automatically (usually /usr/local/lib64/ for libraries (check LD_LIBRARY_PATH) or /usr/local/include/ for includes)
+
+</details>
 
 ### Compiling Huenicorn
 
@@ -137,7 +150,10 @@ Huenicorn can be shut down through the web interface or by sending a termination
 Additionnal information and news can be found on [Huenicorn.org](http://huenicorn.org), the official website of the project.
 
 ## Version history
-
+* 1.0.3
+- * Moving to Mbed-TLS 3.4
+* 1.0.2
+  * Performance improvement
 * 1.0.1
   * Better reliability and documentation
 * 1.0.0

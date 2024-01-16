@@ -1,8 +1,13 @@
 #include <Huenicorn/ApiTools.hpp>
 
+#include <iostream>
+
 #include <nlohmann/json.hpp>
 
+#include <glm/gtx/string_cast.hpp>
+
 #include <Huenicorn/RequestUtils.hpp>
+
 
 
 using namespace nlohmann;
@@ -12,6 +17,17 @@ namespace Huenicorn
 {
   namespace ApiTools
   {
+    inline GamutCoordinates jsonToGamut(const nlohmann::json& jsonGamut)
+    {
+      glm::vec2 r{jsonGamut.at("red").at("x"), jsonGamut.at("red").at("y")};
+      glm::vec2 g{jsonGamut.at("green").at("x"), jsonGamut.at("green").at("y")};
+      glm::vec2 b{jsonGamut.at("blue").at("x"), jsonGamut.at("blue").at("y")};
+      GamutCoordinates gcs{r, g, b};
+
+      return gcs;
+    }
+
+
     EntertainmentConfigurations loadEntertainmentConfigurations(const string& username, const string& bridgeAddress)
     {
       EntertainmentConfigurations entertainmentConfigurations;
@@ -37,7 +53,9 @@ namespace Huenicorn
             auto jsonLightData = RequestUtils::sendRequest(lightUrl, "GET", "", headers);
             const json& metadata = jsonLightData.at("data").at(0).at("metadata");
 
-            lights.insert({lightId, {lightId, metadata.at("name"), metadata.at("archetype")}});
+            GamutCoordinates gamutCoordinates = jsonToGamut(jsonLightData.at("data").at(0).at("color").at("gamut"));
+            lights.insert({lightId, {Device{lightId, metadata.at("name"), metadata.at("archetype"), gamutCoordinates}}});
+
           }
 
           Channels channels;
@@ -61,6 +79,15 @@ namespace Huenicorn
 
       Devices devices;
 
+      std::unordered_map<string, GamutCoordinates> devicesGamuts;
+      for(const auto& jsonData : jsonResource.at("data")){
+        if(jsonData.at("type") == "light"){
+          devicesGamuts.insert({jsonData.at("id"), jsonToGamut(jsonData.at("color").at("gamut"))});
+          cout << jsonData.at("id") << " " << jsonData.at("color").at("gamut") << endl;
+        }
+      }
+
+
       for(const auto& jsonData : jsonResource.at("data")){
         if(jsonData.at("type") == "device"){
           const auto& jsonServices = jsonData.at("services");
@@ -71,7 +98,7 @@ namespace Huenicorn
               string name = jsonData.at("metadata").at("name");
               string archetype = jsonData.at("metadata").at("archetype");
 
-              devices.emplace(deviceId, Device{deviceId, name, archetype});
+              devices.emplace(deviceId, Device{deviceId, name, archetype, {}});
             }
           }
         }
@@ -105,12 +132,12 @@ namespace Huenicorn
     }
 
 
-    vector<Device> matchDevices(const MembersIds& membersIds, const Devices& devices)
+    vector<std::pair<std::string, Device>> matchDevices(const MembersIds& membersIds, const Devices& devices)
     {
-      vector<Device> matchedDevices;
+      vector<std::pair<std::string, Device>> matchedDevices;
       for(const auto& memberId : membersIds){
         const auto& it = devices.find(memberId);
-        matchedDevices.push_back(it->second);
+        matchedDevices.push_back(make_pair(it->first, it->second));
       }
 
       return matchedDevices;
