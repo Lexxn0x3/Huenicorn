@@ -82,6 +82,7 @@ add_executable(${BINARY_NAME}
   src/HuenicornCore.cpp
   src/ImageProcessing.cpp
   src/JsonSerializer.cpp
+  src/Logger.cpp
   src/Streamer.cpp
   src/RequestUtils.cpp
   src/SetupBackend.cpp
@@ -101,6 +102,7 @@ add_executable(${BINARY_NAME}
   include/Huenicorn/ImageProcessing.hpp
   include/Huenicorn/IRestServer.hpp
   include/Huenicorn/JsonSerializer.hpp
+  include/Huenicorn/Logger.hpp
   include/Huenicorn/RequestUtils.hpp
   include/Huenicorn/SetupBackend.hpp
   include/Huenicorn/Streamer.hpp
