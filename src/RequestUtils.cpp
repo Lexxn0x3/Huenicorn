@@ -1,11 +1,10 @@
 #include <Huenicorn/RequestUtils.hpp>
 
-#include <iostream>
-
 #include <curlpp/cURLpp.hpp>
 #include <curlpp/Options.hpp>
 #include <curlpp/Easy.hpp>
 
+#include <Huenicorn/Logger.hpp>
 
 using namespace nlohmann;
 using namespace std;
@@ -53,10 +52,10 @@ namespace Huenicorn
         jsonResponse = json::parse(response.str());
       }
       catch(const curlpp::LibcurlRuntimeError& e){
-        cout << e.what() << endl;
+        Logger::error(e.what());
       }
       catch(const json::exception& e){
-        cout << e.what() << endl;
+        Logger::error(e.what());
       }
 
       return jsonResponse;

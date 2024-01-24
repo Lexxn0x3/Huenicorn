@@ -4,7 +4,8 @@
   As I spent days to do try to achieve the same result in a less concise way, I feel more confident using this one and give it some personnal changes
 */
 
-#include <iostream>
+#include <Huenicorn/XdgDesktopPortal.hpp>
+
 #include <future>
 #include <string>
 #include <algorithm>
@@ -12,7 +13,7 @@
 
 #include <gio/gunixfdlist.h>
 
-#include <Huenicorn/XdgDesktopPortal.hpp>
+#include <Huenicorn/Logger.hpp>
 
 namespace Huenicorn
 {
@@ -212,12 +213,6 @@ namespace Huenicorn
         return;
       }
 
-      /*
-      std::cout << "pid : " << getpid() << std::endl;
-      std::cout << "pipewire_fd : " << pwFd << std::endl;
-      std::cout << "/proc/" << getpid() <<"/fd/" << pwFd << std::endl;
-      */
-
       capture->pwFd = pwFd;
       capture->fdReadyPromise.set_value(true);
     }
@@ -249,7 +244,7 @@ namespace Huenicorn
       g_variant_get(parameters, "(u@a{sv})", &response, &result);
 
       if(response != 0){
-        std::cout << "Failed to start screencast, denied or cancelled by user." << std::endl;
+        Logger::error("Failed to start screencast, denied or cancelled by user.");
         capture->fdReadyPromise.set_value(false);
         return;
       }
@@ -261,7 +256,7 @@ namespace Huenicorn
 
       size_t n_streams = g_variant_iter_n_children(&iter);
       if(n_streams != 1){
-        std::cout << "received more than one stream when only one was expected. this is probably a bug in the desktop portal implementation you are using." << std::endl;
+        Logger::error("received more than one stream when only one was expected. this is probably a bug in the desktop portal implementation you are using.");
       }
 
       g_autoptr(GVariant) streamProperties = NULL;
@@ -279,7 +274,7 @@ namespace Huenicorn
       g_autoptr(GVariant) result = g_dbus_proxy_call_finish(G_DBUS_PROXY(source), res, &error);
       if(error){
         if(!g_error_matches(error, G_IO_ERROR, G_IO_ERROR_CANCELLED)){
-          std::cout << "error selecting screencast source: " + std::string(error->message) << std::endl;
+          Logger::error("error selecting screencast source: " + std::string(error->message));
           capture->fdReadyPromise.set_value(false);
         }
         return;
@@ -300,7 +295,7 @@ namespace Huenicorn
         g_dbus_proxy_call(getScreencastPortalProxy(), "Start", g_variant_new("(osa{sv})", capture->sessionHandle, "", &builder), G_DBUS_CALL_FLAGS_NONE, -1, capture->cancellable, onStartedCallback, call);
       }
       catch(const std::exception& e){
-        std::cout << e.what() << std::endl;
+        Logger::error(e.what());
       }
     }
 

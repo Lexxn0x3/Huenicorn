@@ -1,11 +1,11 @@
 #include <Huenicorn/Config.hpp>
 
-#include <iostream>
 #include <fstream>
 
 #include <filesystem>
 
 #include <Huenicorn/JsonSerializer.hpp>
+#include <Huenicorn/Logger.hpp>
 
 
 using namespace std;
@@ -163,12 +163,12 @@ namespace Huenicorn
     else{
       const auto& jsonCredentials = jsonConfigRoot.at("credentials");
       if(!jsonCredentials.contains("username")){
-        std::cout << "Missing 'username' in config" << endl;
+        Logger::error("Missing 'username' in config");
         return false;
       }
 
       if(!jsonCredentials.contains("clientkey")){
-        std::cout << "Missing 'clientkey' in config" << endl;
+        Logger::error("Missing 'clientkey' in config");
         return false;
       }
 

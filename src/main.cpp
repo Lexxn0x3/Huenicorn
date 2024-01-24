@@ -1,6 +1,8 @@
 #include <thread>
 
 #include <Huenicorn/HuenicornCore.hpp>
+#include <Huenicorn/Logger.hpp>
+
 #include <csignal>
 
 #include <pwd.h>
@@ -65,7 +67,7 @@ Application app;
 void signalHandler(int signal)
 {
   if(signal == SIGTERM || signal == SIGINT || signal == SIGTSTP){
-    cout << "Closing application" << endl;
+    Huenicorn::Logger::log("Closing application");
     app.stop();
   }
 }
@@ -73,14 +75,14 @@ void signalHandler(int signal)
 
 int main()
 {
-  cout << "Starting Huenicorn version " << Version << endl;
+  Huenicorn::Logger::log("Starting Huenicorn version " + Version);
 
   signal(SIGTERM, signalHandler);
   signal(SIGINT, signalHandler);
   signal(SIGTSTP, signalHandler);
 
   app.start();
-  cout << "Huenicorn terminated properly" << endl;
+  Huenicorn::Logger::log("Huenicorn terminated properly");
 
   return 0;
 }

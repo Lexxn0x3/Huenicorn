@@ -1,12 +1,12 @@
 #include <Huenicorn/DtlsClient.hpp>
 
 #include <stdexcept>
-#include <iostream>
 
 #ifdef MBEDTLS_PLATFORM_C
 #include <mbedtls/platform.h>
 #endif
 
+#include <Huenicorn/Logger.hpp>
 
 using namespace std;
 
@@ -198,7 +198,7 @@ namespace Huenicorn
       throw runtime_error("mbedtls_ssl_handshake failed with code: " + std::to_string(result));
     }
 
-    cout << "Dtls handshake successful" << endl;
+    Logger::log("Dtls handshake successful");
   }
 
 

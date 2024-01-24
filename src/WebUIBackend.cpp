@@ -1,12 +1,13 @@
 #include <Huenicorn/WebUIBackend.hpp>
 
-#include <iostream>
 #include <fstream>
+#include <sstream>
 
 #include <nlohmann/json.hpp>
 
 #include <Huenicorn/HuenicornCore.hpp>
 #include <Huenicorn/JsonSerializer.hpp>
+#include <Huenicorn/Logger.hpp>
 
 
 using namespace nlohmann;
@@ -116,7 +117,10 @@ namespace Huenicorn
 
   void WebUIBackend::_onStart()
   {
-    cout << "Started web service on port " << m_settings->get_port() << endl;
+    std::stringstream ss;
+    ss << "Started web service on port " << m_settings->get_port();
+    Logger::log(ss.str());
+
     if(m_readyWebUIPromise.has_value()){
       m_readyWebUIPromise.value().set_value(true);
     }

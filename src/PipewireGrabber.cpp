@@ -1,12 +1,13 @@
 #include <Huenicorn/PipewireGrabber.hpp>
 
-#include <iostream>
+#include <sstream>
 #include <future>
 #include <fcntl.h>
 
 #include <Huenicorn/XdgDesktopPortal.hpp>
 #include <Huenicorn/ImageProcessing.hpp>
 #include <Huenicorn/Config.hpp>
+#include <Huenicorn/Logger.hpp>
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wpedantic"
@@ -71,7 +72,7 @@ namespace Huenicorn
     (void)info;
     //PipewireData* pw = static_cast<PipewireData*>(userData);
     //update_pw_versions(pw, info->version);
-    //std::cout << info->version << std::endl;
+    //Logger::debug("Pipewire version : " + std::string(info->version));
   }
 
 
@@ -91,7 +92,9 @@ namespace Huenicorn
   {
     PipewireData* pw = static_cast<PipewireData*>(userData);
 
-    std::cerr << "[pipewire] Error id: " << id << " seq: " << seq << " res: " << res << "" << g_strerror(res) << " " << message << std::endl;
+    std::stringstream ss;
+    ss << "[pipewire] Error id: " << id << " seq: " << seq << " res: " << res << "" << g_strerror(res) << " " << message << std::endl;
+    Logger::error(ss.str());
 
     pw_thread_loop_signal(pw->loop, FALSE);
   }
@@ -112,8 +115,6 @@ namespace Huenicorn
       return;
     }
 
-    //std::cout << "got a frame of size " << spaBuffer->datas[0].chunk->size << std::endl;
-
     cv::Mat rgbaFrame(pw->format.info.raw.size.width, pw->format.info.raw.size.height, CV_8UC4, spaBuffer->datas[0].data);
     ImageProcessing::rescale(rgbaFrame, pw->config->subsampleWidth());
     cv::cvtColor(rgbaFrame, rgbaFrame, cv::COLOR_RGBA2RGB);
@@ -130,7 +131,7 @@ namespace Huenicorn
 
   void PipewireGrabber::_onStreamParamChanged(void* userdata, uint32_t id, const struct spa_pod* param)
   {
-    //std::cout << "Params changed !" << std::endl;
+    //Logger::log("Params changed !");
     PipewireData* pw = static_cast<PipewireData*>(userdata);
 
     if(param == NULL || id != SPA_PARAM_Format){
@@ -150,10 +151,20 @@ namespace Huenicorn
     }
 
     /*
-    std::cout << "got video format:" << std::endl;
-    std::cout << "  format: " << pw->format.info.raw.format << spa_debug_type_find_name(spa_type_video_format, pw->format.info.raw.format) << std::endl;
-    std::cout << "  size: " << pw->format.info.raw.size.width << "x" << pw->format.info.raw.size.height << std::endl;
-    std::cout << "  framerate: " <<  pw->format.info.raw.framerate.num << "/" << pw->format.info.raw.framerate.denom << std::endl;
+    std::stringstream ss;
+    Logger::debug("got video format:");
+
+    ss.str("  format: ");
+    ss << pw->format.info.raw.format << spa_debug_type_find_name(spa_type_video_format, pw->format.info.raw.format);
+    Logger::debug(ss.str());
+
+    ss.str("  size: ");
+    ss << pw->format.info.raw.size.width << "x" << pw->format.info.raw.size.height;
+    Logger::debug(ss.str());
+
+    ss.str("  framerate: ");
+    ss << pw->format.info.raw.framerate.num << "/" << pw->format.info.raw.framerate.denom;
+    Logger::debug(ss.str());
     */
 
     pw->ready.set_value(true);
@@ -200,7 +211,7 @@ namespace Huenicorn
 
     auto core = pw_context_connect_fd(pw->context, fcntl(capture->pwFd, F_DUPFD_CLOEXEC, 5), NULL, 0);
     if(!core){
-      std::cout << "Pipewire core creation error : Could not connect fd" << std::endl;
+      Logger::error("Pipewire core creation error : Could not connect fd");
       pw_thread_loop_unlock(pw->loop);
 
       return;

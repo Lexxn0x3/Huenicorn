@@ -18,8 +18,14 @@ namespace Huenicorn
       Debug,
     };
 
-    void log(LogLevel logLevel, const std::string message);
+    void log(LogLevel logLevel, const std::string& message);
 
-    void log(const std::string message);
+    void log(const std::string& logMessage);
+
+    void warn(const std::string& warningMessage);
+
+    void error(const std::string& errorMessage);
+
+    void debug(const std::string& debugMessage);
   }
 }

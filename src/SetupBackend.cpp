@@ -1,5 +1,7 @@
 #include <Huenicorn/SetupBackend.hpp>
+
 #include <Huenicorn/HuenicornCore.hpp>
+#include <Huenicorn/Logger.hpp>
 
 using namespace std;
 using namespace nlohmann;
@@ -98,10 +100,10 @@ namespace Huenicorn
     stringstream serviceUrlStream;
     serviceUrlStream << "http://127.0.0.1:" << m_settings->get_port();
     string serviceURL = serviceUrlStream.str();
-    std::cout << "Setup WebUI is ready and available at " << serviceURL << std::endl;
+    Logger::log("Setup WebUI is ready and available at " + serviceURL);
 
     if(system(string("xdg-open " + serviceURL).c_str()) != 0){
-      std::cout << "Failed to open browser" << std::endl;
+      Logger::error("Failed to open browser");
     }
   }
 

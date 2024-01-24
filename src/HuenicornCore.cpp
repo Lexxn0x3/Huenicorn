@@ -1,6 +1,5 @@
 #include <Huenicorn/HuenicornCore.hpp>
 
-#include <iostream>
 #include <fstream>
 
 #ifdef X11_GRABBER_AVAILABLE
@@ -14,6 +13,7 @@
 #include <Huenicorn/SetupBackend.hpp>
 #include <Huenicorn/WebUIBackend.hpp>
 #include <Huenicorn/JsonSerializer.hpp>
+#include <Huenicorn/Logger.hpp>
 
 
 using namespace nlohmann;
@@ -195,14 +195,14 @@ namespace Huenicorn
     }
 
     if(!_initGrabber()){
-      cout << "Could not start any grabber" << endl;
+      Logger::error("Could not start any grabber");
       return;
     }
 
     _initWebUI();
 
     if(!_initSettings()){
-      cout << "Could not load suitable entertainment configuration." << endl;
+      Logger::error("Could not load suitable entertainment configuration.");
       return;
 
       // TODO : Add tool to create entertainment configurations inside Huenicorn
@@ -235,7 +235,7 @@ namespace Huenicorn
       m_config.setBridgeAddress(sanitizedAddress);
     }
     catch(const json::exception& exception){
-      cout << exception.what() << endl;
+      Logger::error(exception.what());
       return false;
     }
 
@@ -257,10 +257,10 @@ namespace Huenicorn
 
       m_config.setCredentials(credentials.username(), credentials.clientkey());
 
-      cout << "Successfully registered credentials" << endl;
+      Logger::log("Successfully registered credentials");
     }
     catch(const json::exception& exception){
-      cout << exception.what() << endl;
+      Logger::error(exception.what());
       return false;
     }
 
@@ -282,7 +282,7 @@ namespace Huenicorn
   void HuenicornCore::saveProfile()
   {
     if(!m_selector->validSelection()){
-      cout << "There is currently no valid entertainment configuration selected." << endl;
+      Logger::error("There is currently no valid entertainment configuration selected.");
       return;
     }
 
@@ -338,7 +338,7 @@ namespace Huenicorn
       m_config.setSubsampleWidth(m_grabber->subsampleResolutionCandidates().back().x);
     }
 
-    cout << "Configuration is ready. Feel free to modify it manually by editing " << std::quoted(m_config.configFilePath().string()) << endl;
+    Logger::log("Configuration is ready. Feel free to modify it manually by editing \"" + m_config.configFilePath().string() + "\"");
 
     const Credentials& credentials = m_config.credentials().value();
     const string& bridgeAddress =  m_config.bridgeAddress().value();
@@ -368,7 +368,7 @@ namespace Huenicorn
 
   bool HuenicornCore::_runInitialSetup()
   {
-    cout << "Starting setup backend" << endl;
+    Logger::log("Starting setup backend");
     unsigned port = m_config.restServerPort();
     const std::string& boundBackendIP = m_config.boundBackendIP();
 
@@ -376,11 +376,11 @@ namespace Huenicorn
     sb.start(port, boundBackendIP);
 
     if(sb.aborted()){
-      cout << "Initial setup was aborted" << endl;
+      Logger::log("Initial setup was aborted");
       return false;
     }
 
-    cout << "Finished setup" << endl;
+    Logger::log("Finished setup");
     m_openedSetup = true;
 
     return true;
@@ -393,28 +393,28 @@ namespace Huenicorn
 
     try{
 #ifdef PIPEWIRE_GRABBER_AVAILABLE
-    if(sessionType == "wayland"){
-      m_grabber = make_unique<PipewireGrabber>(&m_config);
-      cout << "Started Pipewire grabber." << endl;
-      return true;
-    }
+      if(sessionType == "wayland"){
+        m_grabber = make_unique<PipewireGrabber>(&m_config);
+        Logger::log("Started Pipewire grabber.");
+        return true;
+      }
 #endif
 
 #ifdef X11_GRABBER_AVAILABLE
-    if(sessionType == "x11"){
-      m_grabber = make_unique<X11Grabber>(&m_config);
-      cout << "Started X11 grabber." << endl;
-      return true;
-    }
+      if(sessionType == "x11"){
+        m_grabber = make_unique<X11Grabber>(&m_config);
+        Logger::log("Started X11 grabber.");
+        return true;
+      }
 #endif
     }
     catch(const std::exception& e){
-      cout << e.what() << endl;
+      Logger::error(e.what());
       return false;
     }
 
     if(!m_grabber){
-      cout << "Could not find a compatible grabber for your graphic session." << endl;
+      Logger::error("Could not find a compatible grabber for your graphic session.");
     }
 
     return false;
@@ -485,10 +485,10 @@ namespace Huenicorn
     stringstream serviceUrlStream;
     serviceUrlStream << "http://127.0.0.1:" << m_config.restServerPort();
     string serviceURL = serviceUrlStream.str();
-    std::cout << "Management WebUI is ready and available at " << serviceURL << std::endl;
+    Logger::log("Management WebUI is ready and available at " + serviceURL);
 
     if(system(string("xdg-open " + serviceURL).c_str()) != 0){
-      std::cout << "Failed to open browser" << std::endl;
+      Logger::error("Failed to open browser");
     }
   }
 
@@ -539,9 +539,8 @@ namespace Huenicorn
         warningMessage << lastExcess.extra;
         warningMessage << " (";
         warningMessage << percentage;
-        warningMessage << "%).";
-        cout << warningMessage.str() << endl;
-        cout << "Please reduce refresh rate if this warning persists." << endl;
+        warningMessage << "%).\n";
+        Logger::warn(warningMessage.str() + "Please reduce refresh rate if this warning persists.");
       }
     }
 

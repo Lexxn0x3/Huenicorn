@@ -6,7 +6,7 @@ namespace Huenicorn
 {
   namespace Logger
   {
-    void log(LogLevel logLevel, const std::string message)
+    void log(LogLevel logLevel, const std::string& message)
     {
       switch(logLevel)
       {
@@ -24,7 +24,7 @@ namespace Huenicorn
 
   #ifndef NDEBUG
         case LogLevel::Debug:
-          std::cerr << "[Debug] : " << message << "\n";
+          std::cout << "[Debug] : " << message << "\n";
           break;
   #endif // NDEBUG
 
@@ -34,9 +34,27 @@ namespace Huenicorn
     }
 
 
-    void log(const std::string message)
+    void log(const std::string& logMessage)
     {
-      log(LogLevel::Message, message);
+      log(LogLevel::Message, logMessage);
+    }
+
+
+    void warn(const std::string& warningMessage)
+    {
+      log(LogLevel::Warning, warningMessage);
+    }
+
+
+    void error(const std::string& errorMessage)
+    {
+      log(LogLevel::Error, errorMessage);
+    }
+
+
+    void debug(const std::string& debugMessage)
+    {
+      log(LogLevel::Debug, debugMessage);
     }
   }
 }

@@ -1,6 +1,6 @@
 #include <Huenicorn/Streamer.hpp>
 
-#include <iostream>
+#include <Huenicorn/Logger.hpp>
 
 using namespace glm;
 using namespace std;
@@ -15,7 +15,7 @@ namespace Huenicorn
       m_dtlsClient.init();
     }
     catch(const std::exception& e){
-      cout << e.what();
+      Logger::error(e.what());
     }
   }
 
