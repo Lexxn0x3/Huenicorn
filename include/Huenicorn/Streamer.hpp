@@ -3,8 +3,8 @@
 #include <string>
 #include <vector>
 
-#include <Huenicorn/DtlsClient.hpp>
 #include <Huenicorn/Channel.hpp>
+#include <Huenicorn/DtlsClient.hpp>
 
 
 namespace Huenicorn

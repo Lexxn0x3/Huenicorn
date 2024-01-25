@@ -2,17 +2,17 @@
 
 #include <Huenicorn/IGrabber.hpp>
 
-#include <thread>
-#include <optional>
 #include <mutex>
-
-#include "XdgDesktopPortal.hpp"
+#include <optional>
+#include <thread>
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wpedantic"
 #include <pipewire/pipewire.h>
 #include <spa/param/video/format-utils.h>
 #pragma GCC diagnostic pop
+
+#include <Huenicorn/XdgDesktopPortal.hpp>
 
 
 namespace Huenicorn

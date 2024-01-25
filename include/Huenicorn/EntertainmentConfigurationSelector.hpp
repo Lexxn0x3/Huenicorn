@@ -1,7 +1,7 @@
 #pragma once
 
-#include <string>
 #include <optional>
+#include <string>
 
 #include <Huenicorn/Credentials.hpp>
 #include <Huenicorn/EntertainmentConfiguration.hpp>

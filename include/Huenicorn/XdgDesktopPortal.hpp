@@ -1,15 +1,16 @@
+#pragma once
 /*
   This code is an adapation from https://codeberg.org/metamuffin/xdg-dp-start/src/branch/master/xdg-dp-start.c
   It consists on an extraction from OBS Source code achieving the call and management of a xdg-portal capture query
   As I spent days to do try to achieve the same result in a less concise way, I feel more confident using this one and give it some personnal changes
 */
 
-#pragma once
 
 #include <future>
 #include <string>
 
 #include <gio/gunixfdlist.h>
+
 
 namespace Huenicorn
 {

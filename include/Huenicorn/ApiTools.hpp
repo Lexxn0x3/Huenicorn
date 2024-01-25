@@ -1,8 +1,8 @@
 #pragma once
 
-#include <vector>
 #include <string>
 #include <unordered_map>
+#include <vector>
 
 #include <Huenicorn/Device.hpp>
 #include <Huenicorn/EntertainmentConfiguration.hpp>

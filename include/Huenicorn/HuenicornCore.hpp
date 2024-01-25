@@ -1,21 +1,21 @@
 #pragma once
 
+#include <filesystem>
 #include <optional>
 #include <thread>
-#include <filesystem>
 
 #include <nlohmann/json.hpp>
 
-#include <Huenicorn/IGrabber.hpp>
-#include <Huenicorn/IRestServer.hpp>
-#include <Huenicorn/TickSynchronizer.hpp>
-#include <Huenicorn/Config.hpp>
-#include <Huenicorn/UV.hpp>
+#include <Huenicorn/ApiTools.hpp>
 #include <Huenicorn/Channel.hpp>
+#include <Huenicorn/Config.hpp>
 #include <Huenicorn/EntertainmentConfiguration.hpp>
 #include <Huenicorn/EntertainmentConfigurationSelector.hpp>
-#include <Huenicorn/ApiTools.hpp>
+#include <Huenicorn/IGrabber.hpp>
+#include <Huenicorn/IRestServer.hpp>
 #include <Huenicorn/Streamer.hpp>
+#include <Huenicorn/TickSynchronizer.hpp>
+#include <Huenicorn/UV.hpp>
 
 
 namespace Huenicorn

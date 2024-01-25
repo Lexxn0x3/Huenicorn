@@ -5,8 +5,8 @@
 
 #include <glm/exponential.hpp>
 
-#include <Huenicorn/UV.hpp>
 #include <Huenicorn/Device.hpp>
+#include <Huenicorn/UV.hpp>
 
 
 namespace Huenicorn

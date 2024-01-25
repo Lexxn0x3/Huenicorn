@@ -2,11 +2,11 @@
 
 #include <nlohmann/json.hpp>
 
-#include <Huenicorn/Credentials.hpp>
-#include <Huenicorn/UV.hpp>
-#include <Huenicorn/Channel.hpp>
-#include <Huenicorn/Device.hpp>
 #include <Huenicorn/ApiTools.hpp>
+#include <Huenicorn/Channel.hpp>
+#include <Huenicorn/Credentials.hpp>
+#include <Huenicorn/Device.hpp>
+#include <Huenicorn/UV.hpp>
 
 
 namespace Huenicorn
