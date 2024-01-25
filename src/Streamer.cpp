@@ -2,9 +2,6 @@
 
 #include <Huenicorn/Logger.hpp>
 
-using namespace glm;
-using namespace std;
-
 
 namespace Huenicorn
 {
@@ -28,7 +25,7 @@ namespace Huenicorn
 
   void Streamer::streamChannels(const ChannelStreams& channels)
   {
-    vector<char> requestBuffer;
+    std::vector<char> requestBuffer;
     requestBuffer.insert(requestBuffer.end(), reinterpret_cast<char*>(&m_header), reinterpret_cast<char*>(&m_header) + sizeof(HuestreamHeader));
 
     for(const auto channel : channels){

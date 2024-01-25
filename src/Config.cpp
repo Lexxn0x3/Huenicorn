@@ -1,15 +1,10 @@
 #include <Huenicorn/Config.hpp>
 
-#include <fstream>
-
 #include <filesystem>
+#include <fstream>
 
 #include <Huenicorn/JsonSerializer.hpp>
 #include <Huenicorn/Logger.hpp>
-
-
-using namespace std;
-using namespace nlohmann;
 
 
 namespace Huenicorn
@@ -57,7 +52,7 @@ namespace Huenicorn
   }
 
 
-  const optional<std::string>& Config::bridgeAddress() const
+  const std::optional<std::string>& Config::bridgeAddress() const
   {
     return m_bridgeAddress;
   }
@@ -128,11 +123,11 @@ namespace Huenicorn
 
   bool Config::_loadConfigFile()
   {
-    json jsonConfigRoot = json::object();
+    nlohmann::json jsonConfigRoot = nlohmann::json::object();
     bool requireSave = false;
 
-    if(filesystem::exists(m_configFilePath)){
-      jsonConfigRoot = json::parse(std::ifstream(m_configFilePath));
+    if(std::filesystem::exists(m_configFilePath)){
+      jsonConfigRoot = nlohmann::json::parse(std::ifstream(m_configFilePath));
     }
 
     if(jsonConfigRoot.contains("restServerPort")){
@@ -202,7 +197,7 @@ namespace Huenicorn
   void Config::_save() const
   {
     // Parameter that can safelty take a default value
-    json jsonOutConfig = {
+    nlohmann::json jsonOutConfig = {
       {"subsampleWidth", m_subsampleWidth},
       {"refreshRate", m_refreshRate},
       {"restServerPort", m_restServerPort},
@@ -222,11 +217,11 @@ namespace Huenicorn
       jsonOutConfig["profileName"] = m_profileName.value();
     }
 
-    if(!filesystem::exists(m_configFilePath)){
-      filesystem::create_directories(m_configFilePath.parent_path());
+    if(!std::filesystem::exists(m_configFilePath)){
+      std::filesystem::create_directories(m_configFilePath.parent_path());
     }
 
-    ofstream configFile(m_configFilePath);
-    configFile << jsonOutConfig.dump(2) << endl;
+    std::ofstream configFile(m_configFilePath);
+    configFile << jsonOutConfig.dump(2) << "\n";
   }
 }

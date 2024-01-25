@@ -1,24 +1,23 @@
 #include <Huenicorn/HuenicornCore.hpp>
 
 #include <fstream>
+#include <chrono>
 
-#ifdef X11_GRABBER_AVAILABLE
-#include <Huenicorn/X11Grabber.hpp>
-#endif
+#include <Huenicorn/ImageProcessing.hpp>
+#include <Huenicorn/JsonSerializer.hpp>
+#include <Huenicorn/Logger.hpp>
 #ifdef PIPEWIRE_GRABBER_AVAILABLE
 #include <Huenicorn/PipewireGrabber.hpp>
 #endif
-#include <Huenicorn/ImageProcessing.hpp>
 #include <Huenicorn/RequestUtils.hpp>
 #include <Huenicorn/SetupBackend.hpp>
 #include <Huenicorn/WebUIBackend.hpp>
-#include <Huenicorn/JsonSerializer.hpp>
-#include <Huenicorn/Logger.hpp>
+#ifdef X11_GRABBER_AVAILABLE
+#include <Huenicorn/X11Grabber.hpp>
+#endif
 
 
-using namespace nlohmann;
-using namespace glm;
-using namespace std;
+using namespace std::chrono_literals;
 
 
 namespace Huenicorn
@@ -72,7 +71,7 @@ namespace Huenicorn
   }
 
 
-  vector<glm::ivec2> HuenicornCore::subsampleResolutionCandidates() const
+  std::vector<glm::ivec2> HuenicornCore::subsampleResolutionCandidates() const
   {
     return m_grabber->subsampleResolutionCandidates();
   }
@@ -96,9 +95,9 @@ namespace Huenicorn
   }
 
 
-  json HuenicornCore::autoDetectedBridge() const
+  nlohmann::json HuenicornCore::autoDetectedBridge() const
   {
-    string bridgeAddress;
+    std::string bridgeAddress;
     try{
       auto detectedBridgeData = RequestUtils::sendRequest("https://discovery.meethue.com/", "GET");
 
@@ -108,7 +107,7 @@ namespace Huenicorn
 
       bridgeAddress = detectedBridgeData.front().at("internalipaddress");
     }
-    catch(const json::exception& e){
+    catch(const nlohmann::json::exception& e){
       return {{"succeeded", false}, {"error", "Could not autodetect bridge."}};
     }
 
@@ -116,12 +115,12 @@ namespace Huenicorn
   }
 
 
-  json HuenicornCore::registerNewUser()
+  nlohmann::json HuenicornCore::registerNewUser()
   {
-    string login = getlogin();
-    string deviceType = "huenicorn#" + login;
+    std::string login = getlogin();
+    std::string deviceType = "huenicorn#" + login;
 
-    json request = {{"devicetype", deviceType}, {"generateclientkey", true}};
+    nlohmann::json request = {{"devicetype", deviceType}, {"generateclientkey", true}};
     auto response = RequestUtils::sendRequest(m_config.bridgeAddress().value() + "/api", "POST", request.dump());
 
     if(response.size() < 1){
@@ -132,8 +131,8 @@ namespace Huenicorn
       return {{"succeeded", false}, {"error", response.at(0).at("error").at("description")}};
     }
 
-    string username = response.at(0).at("success").at("username");
-    string clientkey = response.at(0).at("success").at("clientkey");
+    std::string username = response.at(0).at("success").at("username");
+    std::string clientkey = response.at(0).at("success").at("clientkey");
     m_config.setCredentials(username, clientkey);
 
     return {{"succeeded", true}, {"username", username}, {"clientkey", clientkey}};
@@ -222,7 +221,7 @@ namespace Huenicorn
   bool HuenicornCore::validateBridgeAddress(const std::string& bridgeAddress)
   {
     try{
-      string sanitizedAddress = bridgeAddress;
+      std::string sanitizedAddress = bridgeAddress;
       while (sanitizedAddress.back() == '/'){
         sanitizedAddress.pop_back();
       }
@@ -234,7 +233,7 @@ namespace Huenicorn
 
       m_config.setBridgeAddress(sanitizedAddress);
     }
-    catch(const json::exception& exception){
+    catch(const nlohmann::json::exception& exception){
       Logger::error(exception.what());
       return false;
     }
@@ -259,7 +258,7 @@ namespace Huenicorn
 
       Logger::log("Successfully registered credentials");
     }
-    catch(const json::exception& exception){
+    catch(const nlohmann::json::exception& exception){
       Logger::error(exception.what());
       return false;
     }
@@ -288,7 +287,7 @@ namespace Huenicorn
 
     nlohmann::json profile;
     if(m_selector->validSelection()){
-      profile = json{
+      profile = nlohmann::json{
         {"entertainmentConfigurationId", m_selector->currentEntertainmentConfigurationId().value()},
         {"channels", JsonSerializer::serialize(m_channels)}
       };
@@ -298,13 +297,13 @@ namespace Huenicorn
       m_config.setProfileName("profile");
     }
 
-    ofstream profileFile(_profilePath(), ofstream::out);
-    profileFile << profile.dump(2) << endl;
+    std::ofstream profileFile(_profilePath(), std::ofstream::out);
+    profileFile << profile.dump(2) << "\n";
     profileFile.close();
   }
 
 
-  filesystem::path HuenicornCore::_profilePath() const
+  std::filesystem::path HuenicornCore::_profilePath() const
   {
     if(!m_config.profileName().has_value()){
       return {};
@@ -314,17 +313,17 @@ namespace Huenicorn
   }
 
 
-  optional<json> HuenicornCore::_getProfile()
+  std::optional<nlohmann::json> HuenicornCore::_getProfile()
   {
-    filesystem::path profilePath = _profilePath();
-    json jsonProfile = json::object();
+    std::filesystem::path profilePath = _profilePath();
+    nlohmann::json jsonProfile = nlohmann::json::object();
 
-    if(!profilePath.empty() && filesystem::exists(profilePath) && filesystem::is_regular_file(profilePath)){
-      ifstream profileFile(profilePath);
-      return json::parse(profileFile);
+    if(!profilePath.empty() && std::filesystem::exists(profilePath) && std::filesystem::is_regular_file(profilePath)){
+      std::ifstream profileFile(profilePath);
+      return nlohmann::json::parse(profileFile);
     }
 
-    return nullopt;
+    return std::nullopt;
   }
 
 
@@ -341,11 +340,11 @@ namespace Huenicorn
     Logger::log("Configuration is ready. Feel free to modify it manually by editing \"" + m_config.configFilePath().string() + "\"");
 
     const Credentials& credentials = m_config.credentials().value();
-    const string& bridgeAddress =  m_config.bridgeAddress().value();
+    const std::string& bridgeAddress =  m_config.bridgeAddress().value();
 
-    m_selector = make_unique<EntertainmentConfigurationSelector>(credentials, bridgeAddress);
+    m_selector = std::make_unique<EntertainmentConfigurationSelector>(credentials, bridgeAddress);
 
-    string entertainmentConfigurationId = {};
+    std::string entertainmentConfigurationId = {};
     auto optJsonProfile = _getProfile();
 
     if(optJsonProfile.has_value()){
@@ -358,7 +357,7 @@ namespace Huenicorn
     _enableEntertainmentConfiguration(entertainmentConfigurationId);
 
     if(!optJsonProfile.has_value() && !m_openedSetup){
-      thread spawnBrowser([this](){_spawnBrowser();});
+      std::thread spawnBrowser([this](){_spawnBrowser();});
       spawnBrowser.detach();
     }
 
@@ -389,12 +388,12 @@ namespace Huenicorn
 
   bool HuenicornCore::_initGrabber()
   {
-    string sessionType = std::getenv("XDG_SESSION_TYPE");
+    std::string sessionType = std::getenv("XDG_SESSION_TYPE");
 
     try{
 #ifdef PIPEWIRE_GRABBER_AVAILABLE
       if(sessionType == "wayland"){
-        m_grabber = make_unique<PipewireGrabber>(&m_config);
+        m_grabber = std::make_unique<PipewireGrabber>(&m_config);
         Logger::log("Started Pipewire grabber.");
         return true;
       }
@@ -402,7 +401,7 @@ namespace Huenicorn
 
 #ifdef X11_GRABBER_AVAILABLE
       if(sessionType == "x11"){
-        m_grabber = make_unique<X11Grabber>(&m_config);
+        m_grabber = std::make_unique<X11Grabber>(&m_config);
         Logger::log("Started X11 grabber.");
         return true;
       }
@@ -428,7 +427,7 @@ namespace Huenicorn
 
     unsigned restServerPort = m_config.restServerPort();
     const std::string& boundBackendIP = m_config.boundBackendIP();
-    m_webUIService.server = make_unique<WebUIBackend>(this);
+    m_webUIService.server = std::make_unique<WebUIBackend>(this);
     m_webUIService.thread.emplace([&](){
       m_webUIService.server->start(restServerPort, boundBackendIP, std::move(readyWebUIPromise));
     });
@@ -439,8 +438,8 @@ namespace Huenicorn
 
   void HuenicornCore::_initChannels(const nlohmann::json& jsonChannels)
   {
-    const string& username = m_config.credentials().value().username();
-    const string& bridgeAddress =  m_config.bridgeAddress().value();
+    const std::string& username = m_config.credentials().value().username();
+    const std::string& bridgeAddress =  m_config.bridgeAddress().value();
     Devices devices = ApiTools::loadDevices(username, bridgeAddress);
     EntertainmentConfigurationsChannels entertainmentConfigurationsChannels = ApiTools::loadEntertainmentConfigurationsChannels(username, bridgeAddress);
 
@@ -452,7 +451,7 @@ namespace Huenicorn
       for(const auto& jsonProfileChannel : jsonChannels){
         if(jsonProfileChannel.at("channelId") == id){
           bool active = jsonProfileChannel.at("active");
-          json jsonUVs = jsonProfileChannel.at("uvs");
+          nlohmann::json jsonUVs = jsonProfileChannel.at("uvs");
           float uvAx = jsonUVs.at("uvA").at("x");
           float uvAy = jsonUVs.at("uvA").at("y");
           float uvBx = jsonUVs.at("uvB").at("x");
@@ -479,15 +478,15 @@ namespace Huenicorn
   void HuenicornCore::_spawnBrowser()
   {
     while (!m_webUIService.server->running()){
-      this_thread::sleep_for(100ms);
+      std::this_thread::sleep_for(100ms);
     }
     
-    stringstream serviceUrlStream;
+    std::stringstream serviceUrlStream;
     serviceUrlStream << "http://127.0.0.1:" << m_config.restServerPort();
-    string serviceURL = serviceUrlStream.str();
+    std::string serviceURL = serviceUrlStream.str();
     Logger::log("Management WebUI is ready and available at " + serviceURL);
 
-    if(system(string("xdg-open " + serviceURL).c_str()) != 0){
+    if(system(std::string("xdg-open " + serviceURL).c_str()) != 0){
       Logger::error("Failed to open browser");
     }
   }
@@ -502,16 +501,16 @@ namespace Huenicorn
     const Credentials& credentials = m_config.credentials().value();
 
     {
-      lock_guard lock(m_streamerMutex);
+      std::lock_guard lock(m_streamerMutex);
       m_streamer = make_unique<Streamer>(credentials, m_config.bridgeAddress().value());
       m_streamer->setEntertainmentConfigurationId(m_selector->currentEntertainmentConfigurationId().value());
     }
 
     auto profilePath = _profilePath();
-    json jsonChannels = json::object();
+    nlohmann::json jsonChannels = nlohmann::json::object();
 
-    if(filesystem::is_regular_file(profilePath)){
-      json jsonProfile = json::parse(ifstream(_profilePath()));
+    if(std::filesystem::is_regular_file(profilePath)){
+      nlohmann::json jsonProfile = nlohmann::json::parse(std::ifstream(_profilePath()));
       if(jsonProfile.contains("channels")){
         jsonChannels = jsonProfile.at("channels");
       }
@@ -523,7 +522,7 @@ namespace Huenicorn
 
   void HuenicornCore::_startStreamingLoop()
   {
-    m_tickSynchronizer = make_unique<TickSynchronizer>(1.0f / static_cast<float>(m_config.refreshRate()));
+    m_tickSynchronizer = std::make_unique<TickSynchronizer>(1.0f / static_cast<float>(m_config.refreshRate()));
 
     m_tickSynchronizer->start();
 
@@ -534,7 +533,7 @@ namespace Huenicorn
       if(!m_tickSynchronizer->sync()){
         const auto& lastExcess = m_tickSynchronizer->lastExcess();
         float percentage = lastExcess.rate * 100;
-        ostringstream warningMessage;
+        std::ostringstream warningMessage;
         warningMessage << "Scheduled interval has been exceeded of ";
         warningMessage << lastExcess.extra;
         warningMessage << " (";
@@ -581,14 +580,14 @@ namespace Huenicorn
         Color color = ImageProcessing::getDominantColors(subframeImage, 1).front();
 
         glm::vec3 normalized = color.toNormalized();
-        vec3 correctedColor = glm::pow(normalized, glm::vec3(channel.gammaExponent()));
+        glm::vec3 correctedColor = glm::pow(normalized, glm::vec3(channel.gammaExponent()));
 
         channelStreams.push_back({channelId, correctedColor.r, correctedColor.g, correctedColor.b});
       }
     }
 
     {
-      lock_guard lock(m_streamerMutex);
+      std::lock_guard lock(m_streamerMutex);
       if(m_streamer.get()){
         m_streamer->streamChannels(channelStreams);
       }

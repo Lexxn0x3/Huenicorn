@@ -12,10 +12,7 @@
 static constexpr std::string Version = xstr(PROJECT_VERSION);
 
 
-using namespace std;
-
-
-filesystem::path getConfigRoot()
+std::filesystem::path getConfigRoot()
 {
   const char* homeDir;
   if((homeDir = getenv("HOME")) == NULL){
@@ -56,8 +53,8 @@ public:
   }
 
 private:
-  unique_ptr<Huenicorn::HuenicornCore> m_core;
-  std::optional<thread> m_applicationThread;
+  std::unique_ptr<Huenicorn::HuenicornCore> m_core;
+  std::optional<std::thread> m_applicationThread;
 };
 
 

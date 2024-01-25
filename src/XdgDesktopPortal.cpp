@@ -6,10 +6,10 @@
 
 #include <Huenicorn/XdgDesktopPortal.hpp>
 
-#include <future>
-#include <string>
 #include <algorithm>
+#include <future>
 #include <sstream>
+#include <string>
 
 #include <gio/gunixfdlist.h>
 

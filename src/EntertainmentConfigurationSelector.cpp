@@ -1,11 +1,7 @@
 #include <Huenicorn/EntertainmentConfigurationSelector.hpp>
 
-#include <Huenicorn/Logger.hpp>
-
 #include <Huenicorn/ApiTools.hpp>
-
-
-using namespace std;
+#include <Huenicorn/Logger.hpp>
 
 
 namespace Huenicorn
@@ -21,7 +17,7 @@ namespace Huenicorn
   std::optional<std::string> EntertainmentConfigurationSelector::currentEntertainmentConfigurationId() const
   {
     if(!validSelection()){
-      return nullopt;
+      return std::nullopt;
     }
 
     return {m_currentEntertainmentConfiguration->first};

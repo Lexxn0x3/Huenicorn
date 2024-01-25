@@ -6,17 +6,14 @@
 
 #include <Huenicorn/Logger.hpp>
 
-using namespace nlohmann;
-using namespace std;
-
 
 namespace Huenicorn
 {
   namespace RequestUtils
   {
-    json sendRequest(const std::string& url, const std::string& method, const std::string& body, const Headers& headers)
+    nlohmann::json sendRequest(const std::string& url, const std::string& method, const std::string& body, const Headers& headers)
     {
-      json jsonBody = json::object();
+      nlohmann::json jsonBody = nlohmann::json::object();
       curlpp::Cleanup cleaner;
       curlpp::Easy request;
 
@@ -34,9 +31,9 @@ namespace Huenicorn
         request.setOpt(new curlpp::options::SslVerifyPeer(false));
         request.setOpt(new curlpp::options::SslVerifyHost(false));
 
-        list<string> concatenatedHeaders;
+        std::list<std::string> concatenatedHeaders;
         for(const auto& header : headers){
-          string concat = header.first + ": " + header.second;
+          std::string concat = header.first + ": " + header.second;
           concatenatedHeaders.push_back(concat);
         }
         
@@ -46,15 +43,15 @@ namespace Huenicorn
       std::ostringstream response;
       request.setOpt(new curlpp::options::WriteStream(&response));
 
-      json jsonResponse = {};
+      nlohmann::json jsonResponse = {};
       try{
         request.perform();
-        jsonResponse = json::parse(response.str());
+        jsonResponse = nlohmann::json::parse(response.str());
       }
       catch(const curlpp::LibcurlRuntimeError& e){
         Logger::error(e.what());
       }
-      catch(const json::exception& e){
+      catch(const nlohmann::json::exception& e){
         Logger::error(e.what());
       }
 

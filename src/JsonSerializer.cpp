@@ -1,7 +1,5 @@
 #include <Huenicorn/JsonSerializer.hpp>
 
-using namespace nlohmann;
-
 
 namespace Huenicorn
 {

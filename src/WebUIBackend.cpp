@@ -10,10 +10,6 @@
 #include <Huenicorn/Logger.hpp>
 
 
-using namespace nlohmann;
-using namespace std;
-
-
 namespace Huenicorn
 {
   WebUIBackend::WebUIBackend(HuenicornCore* huenicornCore):
@@ -21,91 +17,91 @@ namespace Huenicorn
   m_huenicornCore(huenicornCore)
   {
     {
-      auto resource = make_shared<restbed::Resource>();
+      auto resource = std::make_shared<restbed::Resource>();
       resource->set_path("/webUIStatus");
       resource->set_method_handler("GET", [this](SharedSession session){_getWebUIStatus(session);});
       m_service.publish(resource);
     }
 
     {
-      auto resource = make_shared<restbed::Resource>();
+      auto resource = std::make_shared<restbed::Resource>();
       resource->set_path("/entertainmentConfigurations");
       resource->set_method_handler("GET", [this](SharedSession session){_getEntertainmentConfigurations(session);});
       m_service.publish(resource);
     }
 
     {
-      auto resource = make_shared<restbed::Resource>();
+      auto resource = std::make_shared<restbed::Resource>();
       resource->set_path("/channel/{channelId: .+}");
       resource->set_method_handler("GET", [this](SharedSession session){_getChannel(session);});
       m_service.publish(resource);
     }
 
     {
-      auto resource = make_shared<restbed::Resource>();
+      auto resource = std::make_shared<restbed::Resource>();
       resource->set_path("/channels");
       resource->set_method_handler("GET", [this](SharedSession session){_getChannels(session);});
       m_service.publish(resource);
     }
 
     {
-      auto resource = make_shared<restbed::Resource>();
+      auto resource = std::make_shared<restbed::Resource>();
       resource->set_path("/displayInfo");
       resource->set_method_handler("GET", [this](SharedSession session){_getDisplayInfo(session);});
       m_service.publish(resource);
     }
 
     {
-      auto resource = make_shared<restbed::Resource>();
+      auto resource = std::make_shared<restbed::Resource>();
       resource->set_path("/setEntertainmentConfiguration");
       resource->set_method_handler("PUT", [this](SharedSession session){_setEntertainmentConfiguration(session);});
       m_service.publish(resource);
     }
 
     {
-      auto resource = make_shared<restbed::Resource>();
+      auto resource = std::make_shared<restbed::Resource>();
       resource->set_path("/setChannelUV/{channelId: .+}");
       resource->set_method_handler("PUT", [this](SharedSession session){_setChannelUV(session);});
       m_service.publish(resource);
     }
 
     {
-      auto resource = make_shared<restbed::Resource>();
+      auto resource = std::make_shared<restbed::Resource>();
       resource->set_path("/setChannelGammaFactor/{channelId: .+}");
       resource->set_method_handler("PUT", [this](SharedSession session){_setChannelGammaFactor(session);});
       m_service.publish(resource);
     }
 
     {
-      auto resource = make_shared<restbed::Resource>();
+      auto resource = std::make_shared<restbed::Resource>();
       resource->set_path("/setSubsampleWidth");
       resource->set_method_handler("PUT", [this](SharedSession session){_setSubsampleWidth(session);});
       m_service.publish(resource);
     }
 
     {
-      auto resource = make_shared<restbed::Resource>();
+      auto resource = std::make_shared<restbed::Resource>();
       resource->set_path("/setRefreshRate");
       resource->set_method_handler("PUT", [this](SharedSession session){_setRefreshRate(session);});
       m_service.publish(resource);
     }
 
     {
-      auto resource = make_shared<restbed::Resource>();
+      auto resource = std::make_shared<restbed::Resource>();
       resource->set_path("/setChannelActivity");
       resource->set_method_handler("POST", [this](SharedSession session){_setChannelActivity(session);});
       m_service.publish(resource);
     }
 
     {
-      auto resource = make_shared<restbed::Resource>();
+      auto resource = std::make_shared<restbed::Resource>();
       resource->set_path("/saveProfile");
       resource->set_method_handler("POST", [this](SharedSession session){_saveProfile(session);});
       m_service.publish(resource);
     }
 
     {
-      auto resource = make_shared<restbed::Resource>();
+      auto resource = std::make_shared<restbed::Resource>();
       resource->set_path("/stop");
       resource->set_method_handler("POST", [this](SharedSession session){_stop(session);});
       m_service.publish(resource);
@@ -129,11 +125,11 @@ namespace Huenicorn
 
   void WebUIBackend::_getVersion(const SharedSession& session) const
   {
-    json jsonResponse = {
+    nlohmann::json jsonResponse = {
       {"version", m_huenicornCore->version()},
     };
 
-    string response = jsonResponse.dump();
+    std::string response = jsonResponse.dump();
 
     session->close(restbed::OK, response, {
       {"Content-Length", std::to_string(response.size())},
@@ -144,11 +140,11 @@ namespace Huenicorn
 
   void WebUIBackend::_getWebUIStatus(const SharedSession& session) const
   {
-    json jsonResponse = {
+    nlohmann::json jsonResponse = {
       {"ready", true},
     };
 
-    string response = jsonResponse.dump();
+    std::string response = jsonResponse.dump();
 
     session->close(restbed::OK, response, {
       {"Content-Length", std::to_string(response.size())},
@@ -162,14 +158,14 @@ namespace Huenicorn
     const auto request = session->get_request();
 
     auto entertainmentConfigurations = JsonSerializer::serialize(m_huenicornCore->entertainmentConfigurations());
-    string currentEntertainmentConfigurationId = m_huenicornCore->currentEntertainmentConfigurationId().value();
+    std::string currentEntertainmentConfigurationId = m_huenicornCore->currentEntertainmentConfigurationId().value();
 
-    json jsonResponse = {
+    nlohmann::json jsonResponse = {
       {"entertainmentConfigurations", entertainmentConfigurations},
       {"currentEntertainmentConfigurationId", currentEntertainmentConfigurationId}
     };
 
-    string response = jsonResponse.dump();
+    std::string response = jsonResponse.dump();
 
     session->close(restbed::OK, response, {
       {"Content-Length", std::to_string(response.size())},
@@ -183,7 +179,7 @@ namespace Huenicorn
     const auto request = session->get_request();
 
     uint8_t channelId = stoi(request->get_path_parameter("channelId"));
-    string response = JsonSerializer::serialize(m_huenicornCore->channels().at(channelId)).dump();
+    std::string response = JsonSerializer::serialize(m_huenicornCore->channels().at(channelId)).dump();
     session->close(restbed::OK, response, {
       {"Content-Length", std::to_string(response.size())},
       {"Content-Type", "application/json"}
@@ -193,7 +189,7 @@ namespace Huenicorn
 
   void WebUIBackend::_getChannels(const SharedSession& session) const
   {
-    string response = JsonSerializer::serialize(m_huenicornCore->channels()).dump();
+    std::string response = JsonSerializer::serialize(m_huenicornCore->channels()).dump();
     session->close(restbed::OK, response, {
       {"Content-Length", std::to_string(response.size())},
       {"Content-Type", "application/json"}
@@ -206,7 +202,7 @@ namespace Huenicorn
     auto displayResolution = m_huenicornCore->displayResolution();
     auto subsampleResolutionCandidates = m_huenicornCore->subsampleResolutionCandidates();
 
-    json jsonSubsampleCandidates = json::array();
+    nlohmann::json jsonSubsampleCandidates = nlohmann::json::array();
     for(const auto& candidate : this->m_huenicornCore->subsampleResolutionCandidates()){
       jsonSubsampleCandidates.push_back({
         {"x", candidate.x},
@@ -214,7 +210,7 @@ namespace Huenicorn
       });
     }
 
-    json jsonDisplayInfo{
+    nlohmann::json jsonDisplayInfo{
       {"x", displayResolution.x},
       {"y", displayResolution.y},
       {"subsampleWidth", m_huenicornCore->subsampleWidth()},
@@ -223,7 +219,7 @@ namespace Huenicorn
       {"maxRefreshRate", m_huenicornCore->maxRefreshRate()}
     };
 
-    string response = jsonDisplayInfo.dump();
+    std::string response = jsonDisplayInfo.dump();
 
     session->close(restbed::OK, response, {
       {"Content-Length", std::to_string(response.size())},
@@ -238,19 +234,19 @@ namespace Huenicorn
     int contentLength = request->get_header("Content-Length", 0);
 
     session->fetch(contentLength, [this](const SharedSession& session, const restbed::Bytes& body){
-      string data(reinterpret_cast<const char*>(body.data()), body.size());
+      std::string data(reinterpret_cast<const char*>(body.data()), body.size());
 
-      string entertainmentConfigurationId = json::parse(data);
+      std::string entertainmentConfigurationId = nlohmann::json::parse(data);
 
       bool succeeded = m_huenicornCore->setEntertainmentConfiguration(entertainmentConfigurationId);
 
-      json jsonResponse = {
+      nlohmann::json jsonResponse = {
         {"succeeded", succeeded},
         {"entertainmentConfigurationId", entertainmentConfigurationId},
         {"channels", JsonSerializer::serialize(m_huenicornCore->channels())}
       };
 
-      string response = jsonResponse.dump();
+      std::string response = jsonResponse.dump();
 
       session->close(restbed::OK, response, {
         {"Content-Length", std::to_string(response.size())},
@@ -266,11 +262,11 @@ namespace Huenicorn
     int contentLength = request->get_header("Content-Length", 0);
 
     session->fetch(contentLength, [this](const SharedSession& session, const restbed::Bytes& body){
-      string data(reinterpret_cast<const char*>(body.data()), body.size());
+      std::string data(reinterpret_cast<const char*>(body.data()), body.size());
       const auto& request = session->get_request();
       uint8_t channelId = stoi(request->get_path_parameter("channelId"));
 
-      json jsonUV = json::parse(data);
+      nlohmann::json jsonUV = nlohmann::json::parse(data);
 
       float x = jsonUV.at("x");
       float y = jsonUV.at("y");
@@ -279,12 +275,12 @@ namespace Huenicorn
       const auto& clampedUVs = m_huenicornCore->setChannelUV(channelId, {x, y}, uvCorner);
 
       // TODO : Serialize from JsonSerializer
-      json jsonResponse = {
+      nlohmann::json jsonResponse = {
         {"uvA", {{"x", clampedUVs.min.x}, {"y", clampedUVs.min.y}}},
         {"uvB", {{"x", clampedUVs.max.x}, {"y", clampedUVs.max.y}}}
       };
 
-      string response = jsonResponse.dump();
+      std::string response = jsonResponse.dump();
       
       session->close(restbed::OK, response, {
         {"Content-Length", std::to_string(response.size())},
@@ -300,8 +296,8 @@ namespace Huenicorn
     int contentLength = request->get_header("Content-Length", 0);
 
     session->fetch(contentLength, [this](const SharedSession& session, const restbed::Bytes& body){
-      string data(reinterpret_cast<const char*>(body.data()), body.size());
-      json jsonGammaFactorData = json::parse(data);
+      std::string data(reinterpret_cast<const char*>(body.data()), body.size());
+      nlohmann::json jsonGammaFactorData = nlohmann::json::parse(data);
       const auto& request = session->get_request();
 
       uint8_t channelId = stoi(request->get_path_parameter("channelId"));
@@ -309,7 +305,7 @@ namespace Huenicorn
       float gammaFactor = jsonGammaFactorData.at("gammaFactor");
 
       if(!m_huenicornCore->setChannelGammaFactor(channelId, gammaFactor)){
-        string response = json{
+        std::string response = nlohmann::json{
           {"succeeded", false},
           {"error", "invalid channel id"}
         }.dump();
@@ -317,12 +313,12 @@ namespace Huenicorn
         return;
       }
 
-      json jsonResponse = json{
+      nlohmann::json jsonResponse = nlohmann::json{
         {"succeeded", true},
         {"gammaFactor", gammaFactor}
       };
 
-      string response = jsonResponse.dump();
+      std::string response = jsonResponse.dump();
       session->close(restbed::OK, response, {
         {"Content-Length", std::to_string(response.size())},
         {"Content-Type", "application/json"}
@@ -337,20 +333,20 @@ namespace Huenicorn
     int contentLength = request->get_header("Content-Length", 0);
 
     session->fetch(contentLength, [this](const SharedSession& session, const restbed::Bytes& body){
-      string data(reinterpret_cast<const char*>(body.data()), body.size());
+      std::string data(reinterpret_cast<const char*>(body.data()), body.size());
 
-      int subsampleWidth = json::parse(data).get<int>();
+      int subsampleWidth = nlohmann::json::parse(data).get<int>();
 
       m_huenicornCore->setSubsampleWidth(subsampleWidth);
 
       glm::ivec2 displayResolution = m_huenicornCore->displayResolution();
-      json jsonDisplay{
+      nlohmann::json jsonDisplay{
         {"x", displayResolution.x},
         {"y", displayResolution.y},
         {"subsampleWidth", m_huenicornCore->subsampleWidth()}
       };
 
-      string response = jsonDisplay.dump();
+      std::string response = jsonDisplay.dump();
 
       session->close(restbed::OK, response, {
         {"Content-Length", std::to_string(response.size())},
@@ -366,17 +362,17 @@ namespace Huenicorn
     int contentLength = request->get_header("Content-Length", 0);
 
     session->fetch(contentLength, [this](const SharedSession& session, const restbed::Bytes& body){
-      string data(reinterpret_cast<const char*>(body.data()), body.size());
+      std::string data(reinterpret_cast<const char*>(body.data()), body.size());
 
-      unsigned refreshRate = json::parse(data).get<unsigned>();
+      unsigned refreshRate = nlohmann::json::parse(data).get<unsigned>();
 
       m_huenicornCore->setRefreshRate(refreshRate);
 
-      json jsonRefreshRate{
+      nlohmann::json jsonRefreshRate{
         {"refreshRate", m_huenicornCore->refreshRate()}
       };
 
-      string response = jsonRefreshRate.dump();
+      std::string response = jsonRefreshRate.dump();
 
       session->close(restbed::OK, response, {
         {"Content-Length", std::to_string(response.size())},
@@ -392,14 +388,14 @@ namespace Huenicorn
     int contentLength = request->get_header("Content-Length", 0);
 
     session->fetch(contentLength, [this](const SharedSession& session, const restbed::Bytes& body){
-      string data(reinterpret_cast<const char*>(body.data()), body.size());
-      json jsonChannelData = json::parse(data);
+      std::string data(reinterpret_cast<const char*>(body.data()), body.size());
+      nlohmann::json jsonChannelData = nlohmann::json::parse(data);
 
       uint8_t channelId = jsonChannelData.at("channelId");
       bool active = jsonChannelData.at("active");
 
       if(!m_huenicornCore->setChannelActivity(channelId, active)){
-        string response = json{
+        std::string response = nlohmann::json{
           {"succeeded", false},
           {"error", "invalid channel id"}
         }.dump();
@@ -407,7 +403,7 @@ namespace Huenicorn
         return;
       }
 
-      json jsonResponse = json{
+      nlohmann::json jsonResponse = nlohmann::json{
         {"succeeded", true},
         {"channels", JsonSerializer::serialize(m_huenicornCore->channels())},
       };
@@ -415,8 +411,8 @@ namespace Huenicorn
       if(active){
         jsonResponse["newActiveChannelId"] = channelId;
       }
-      
-      string response = jsonResponse.dump();
+
+      std::string response = jsonResponse.dump();
 
       session->close(restbed::OK, response, {
         {"Content-Length", std::to_string(response.size())},
@@ -430,11 +426,11 @@ namespace Huenicorn
   {
     m_huenicornCore->saveProfile();
 
-    json jsonResponse = {
+    nlohmann::json jsonResponse = {
       "succeeded", true
     };
 
-    string response = jsonResponse.dump();
+    std::string response = jsonResponse.dump();
     session->close(restbed::OK, response, {
       {"Content-Length", std::to_string(response.size())},
       {"Content-Type", "application/json"}
@@ -444,11 +440,11 @@ namespace Huenicorn
 
   void WebUIBackend::_stop(const SharedSession& session) const
   {
-    json jsonResponse = {{
+    nlohmann::json jsonResponse = {{
       "succeeded", true
     }};
 
-    string response = jsonResponse.dump();
+    std::string response = jsonResponse.dump();
     session->close(restbed::OK, response, {
       {"Content-Length", std::to_string(response.size())},
       {"Content-Type", "application/json"}

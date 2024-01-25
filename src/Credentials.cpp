@@ -1,6 +1,5 @@
 #include <Huenicorn/Credentials.hpp>
 
-using namespace std;
 
 namespace Huenicorn
 {
