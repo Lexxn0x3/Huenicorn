@@ -32,7 +32,7 @@ namespace Huenicorn
      * @param sourceImage Input image
      * @param a Top-left coordinates
      * @param b Bottom-right coordinates
-     * @return cv::Mat 
+     * @return cv::Mat Crop of the image
      */
     cv::Mat getSubImage(const cv::Mat& sourceImage, const glm::ivec2& a, const glm::ivec2& b);
 
@@ -45,5 +45,12 @@ namespace Huenicorn
      * @return Colors List of dominant colors
      */
     Colors getDominantColors(cv::Mat& image, unsigned k = 1);
+
+
+    namespace Algorithms
+    {
+      Colors kMeans(const cv::Mat& image, unsigned k = 1);
+      Colors mean(const cv::Mat& image, unsigned);
+    }
   };
 }

@@ -176,6 +176,7 @@ namespace Huenicorn
       return !(has_neg && has_pos);
     }
 
+  public:
     // Attributes
     ChannelDepth m_r;
     ChannelDepth m_g;
