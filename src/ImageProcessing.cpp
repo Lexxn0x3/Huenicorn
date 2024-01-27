@@ -30,20 +30,21 @@ namespace Huenicorn
     }
 
 
-    Colors getDominantColors(cv::Mat& image, unsigned k)
+    Color getDominantColor(cv::Mat& image)
     {
       if(image.cols < 1 || image.rows < 1){
         return {Color(0, 0, 0)};
       }
     
-      return Algorithms::mean(image, k);
+      return Algorithms::mean(image);
     }
 
 
     namespace Algorithms
     {
-      Colors kMeans(const cv::Mat& image, unsigned k)
+      Color kMeans(const cv::Mat& image)
       {
+        unsigned k = 1;
         Colors dominantColors;
         dominantColors.reserve(k);
         cv::Mat data = image.reshape(1, image.total());
@@ -64,21 +65,19 @@ namespace Huenicorn
           dominantColors.emplace_back(Mi[2], Mi[1], Mi[0]);
         }
 
-        return dominantColors;
+        return dominantColors.front();
       }
 
 
-      Colors mean(const cv::Mat& image, unsigned /*k*/)
+      Color mean(const cv::Mat& image)
       {
         cv::Mat data = image.reshape(3, image.total());
         auto mean = cv::mean(data);
 
-        return Colors{
-          {
-            static_cast<uint8_t>(mean[2]),
-            static_cast<uint8_t>(mean[1]),
-            static_cast<uint8_t>(mean[0])
-          }
+        return Color{
+          static_cast<uint8_t>(mean[2]),
+          static_cast<uint8_t>(mean[1]),
+          static_cast<uint8_t>(mean[0])
         };
       }
     }

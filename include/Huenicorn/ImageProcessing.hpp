@@ -38,19 +38,18 @@ namespace Huenicorn
 
 
     /**
-     * @brief Get the Dominant Colors object
+     * @brief Get the Dominant Color
      * 
      * @param image Input image
-     * @param k Amount of dominant colors to output
-     * @return Colors List of dominant colors
+     * @return Color Dominant color
      */
-    Colors getDominantColors(cv::Mat& image, unsigned k = 1);
+    Color getDominantColor(cv::Mat& image);
 
 
     namespace Algorithms
     {
-      Colors kMeans(const cv::Mat& image, unsigned k = 1);
-      Colors mean(const cv::Mat& image, unsigned);
+      Color kMeans(const cv::Mat& image);
+      Color mean(const cv::Mat& image);
     }
   };
 }
