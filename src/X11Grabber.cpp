@@ -109,7 +109,7 @@ namespace Huenicorn
       image = cv::Mat(m_imageData->height, m_imageData->width, CV_8UC3, m_imageData->pixels.data());
     }
 
-    ImageProcessing::rescale(image, m_config->subsampleWidth());
+    ImageProcessing::rescale(image, m_config->subsampleWidth(), m_config->interpolation());
 
     if(image.channels() == 4){
       cv::cvtColor(image, image, cv::COLOR_RGBA2RGB);

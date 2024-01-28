@@ -116,7 +116,7 @@ namespace Huenicorn
     }
 
     cv::Mat rgbaFrame(pw->format.info.raw.size.width, pw->format.info.raw.size.height, CV_8UC4, spaBuffer->datas[0].data);
-    ImageProcessing::rescale(rgbaFrame, pw->config->subsampleWidth());
+    ImageProcessing::rescale(rgbaFrame, pw->config->subsampleWidth(), pw->config->interpolation());
     cv::cvtColor(rgbaFrame, rgbaFrame, cv::COLOR_RGBA2RGB);
 
     {

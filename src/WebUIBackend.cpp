@@ -53,6 +53,13 @@ namespace Huenicorn
 
     {
       auto resource = std::make_shared<restbed::Resource>();
+      resource->set_path("/interpolationInfo");
+      resource->set_method_handler("GET", [this](SharedSession session){_getInterpolationInfo(session);});
+      m_service.publish(resource);
+    }
+
+    {
+      auto resource = std::make_shared<restbed::Resource>();
       resource->set_path("/setEntertainmentConfiguration");
       resource->set_method_handler("PUT", [this](SharedSession session){_setEntertainmentConfiguration(session);});
       m_service.publish(resource);
@@ -83,6 +90,13 @@ namespace Huenicorn
       auto resource = std::make_shared<restbed::Resource>();
       resource->set_path("/setRefreshRate");
       resource->set_method_handler("PUT", [this](SharedSession session){_setRefreshRate(session);});
+      m_service.publish(resource);
+    }
+
+    {
+      auto resource = std::make_shared<restbed::Resource>();
+      resource->set_path("/setInterpolation");
+      resource->set_method_handler("PUT", [this](SharedSession session){_setInterpolation(session);});
       m_service.publish(resource);
     }
 
@@ -200,10 +214,9 @@ namespace Huenicorn
   void WebUIBackend::_getDisplayInfo(const SharedSession& session) const
   {
     auto displayResolution = m_huenicornCore->displayResolution();
-    auto subsampleResolutionCandidates = m_huenicornCore->subsampleResolutionCandidates();
 
     nlohmann::json jsonSubsampleCandidates = nlohmann::json::array();
-    for(const auto& candidate : this->m_huenicornCore->subsampleResolutionCandidates()){
+    for(const auto& candidate : m_huenicornCore->subsampleResolutionCandidates()){
       jsonSubsampleCandidates.push_back({
         {"x", candidate.x},
         {"y", candidate.y}
@@ -220,6 +233,29 @@ namespace Huenicorn
     };
 
     std::string response = jsonDisplayInfo.dump();
+
+    session->close(restbed::OK, response, {
+      {"Content-Length", std::to_string(response.size())},
+      {"Content-Type", "application/json"}
+    });
+  }
+
+
+  void WebUIBackend::_getInterpolationInfo(const SharedSession& session) const
+  {
+    nlohmann::json jsonAvailableInterpolations = nlohmann::json::array();
+    for(const auto& [key, value] : m_huenicornCore->availableInterpolations()){
+      jsonAvailableInterpolations.push_back({
+        {key, value},
+      });
+    }
+
+    nlohmann::json jsonInterpolationInfo = {
+      {"available", jsonAvailableInterpolations},
+      {"current", m_huenicornCore->interpolation()}
+    };
+
+    std::string response = jsonInterpolationInfo.dump();
 
     session->close(restbed::OK, response, {
       {"Content-Length", std::to_string(response.size())},
@@ -373,6 +409,32 @@ namespace Huenicorn
       };
 
       std::string response = jsonRefreshRate.dump();
+
+      session->close(restbed::OK, response, {
+        {"Content-Length", std::to_string(response.size())},
+        {"Content-Type", "application/json"}
+      });
+    });
+  }
+
+
+  void WebUIBackend::_setInterpolation(const SharedSession& session) const
+  {
+    const auto request = session->get_request();
+    int contentLength = request->get_header("Content-Length", 0);
+
+    session->fetch(contentLength, [this](const SharedSession& session, const restbed::Bytes& body){
+      std::string data(reinterpret_cast<const char*>(body.data()), body.size());
+
+      unsigned interpolation = nlohmann::json::parse(data).get<unsigned>();
+
+      m_huenicornCore->setInterpolation(interpolation);
+
+      nlohmann::json jsonInterpolation{
+        {"interpolation", m_huenicornCore->interpolation()}
+      };
+
+      std::string response = jsonInterpolation.dump();
 
       session->close(restbed::OK, response, {
         {"Content-Length", std::to_string(response.size())},

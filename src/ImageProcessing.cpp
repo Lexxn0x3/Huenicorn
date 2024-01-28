@@ -5,7 +5,7 @@ namespace Huenicorn
 {
   namespace ImageProcessing
   {
-    void rescale(cv::Mat& image, int targetWidth)
+    void rescale(cv::Mat& image, int targetWidth, Interpolation::Type interpolation)
     {
       int sourceHeight = image.rows;
       int sourceWidth = image.cols;
@@ -17,7 +17,24 @@ namespace Huenicorn
       float scaleRatio = static_cast<float>(targetWidth) / sourceWidth;
 
       int targetHeight = sourceHeight * scaleRatio;
-      cv::resize(image, image, cv::Size(targetWidth, targetHeight), 0, 0, cv::InterpolationFlags::INTER_LINEAR);
+
+      cv::InterpolationFlags interpolationFlag = cv::InterpolationFlags::INTER_AREA;
+
+      switch(interpolation){
+        case Interpolation::Type::Nearest:
+          interpolationFlag = cv::InterpolationFlags::INTER_NEAREST;
+          break;
+
+        case Interpolation::Type::Linear:
+          interpolationFlag = cv::InterpolationFlags::INTER_LINEAR;
+          break;
+
+        case Interpolation::Type::Area:
+          interpolationFlag = cv::InterpolationFlags::INTER_AREA;
+          break;
+      }
+
+      cv::resize(image, image, cv::Size(targetWidth, targetHeight), 0, 0, interpolationFlag);
     }
 
 
@@ -35,7 +52,7 @@ namespace Huenicorn
       if(image.cols < 1 || image.rows < 1){
         return {Color(0, 0, 0)};
       }
-    
+
       return Algorithms::mean(image);
     }
 

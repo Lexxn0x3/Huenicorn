@@ -4,6 +4,7 @@
 
 #include <opencv2/opencv.hpp>
 
+#include <Huenicorn/Interpolation.hpp>
 #include <Huenicorn/Color.hpp>
 
 
@@ -22,8 +23,9 @@ namespace Huenicorn
      * 
      * @param image Input bitmap
      * @param targetWidth Target width of the output bitmap
+     * @param interpolationType Subsampling interpolation type
      */
-    void rescale(cv::Mat& image, int targetWidth);
+    void rescale(cv::Mat& image, int targetWidth, Interpolation::Type interpolationType);
 
 
     /**

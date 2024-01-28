@@ -5,6 +5,7 @@
 
 #include <nlohmann/json.hpp>
 
+#include <Huenicorn/Interpolation.hpp>
 #include <Huenicorn/Credentials.hpp>
 
 
@@ -115,6 +116,15 @@ namespace Huenicorn
      */
     unsigned subsampleWidth() const;
 
+
+    /**
+     * @brief Returns the registered subsample interpolation type
+     * 
+     * @return Type of current subsample interpolation
+    */
+    Interpolation::Type interpolation() const;
+
+
     // Setters
     /**
      * @brief Registers Hue bridge address
@@ -157,6 +167,13 @@ namespace Huenicorn
     void setRefreshRate(unsigned refreshRate);
 
 
+    /**
+     * @brief Registers the interpolation type for subsample
+     * 
+     * @param interpolation Type of interpolation
+    */
+    void setInterpolation(Interpolation::Type interpolation);
+
   private:
     // Private methods
     /**
@@ -184,5 +201,6 @@ namespace Huenicorn
     std::optional<std::string> m_profileName;
     unsigned m_refreshRate{0};
     unsigned m_subsampleWidth{0};
+    Interpolation::Type m_interpolation{Interpolation::Type::Area};
   };
 }

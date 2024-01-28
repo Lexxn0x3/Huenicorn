@@ -52,6 +52,12 @@ namespace Huenicorn
   }
 
 
+  Interpolation::Type Config::interpolation() const
+  {
+    return m_interpolation;
+  }
+
+
   const std::optional<std::string>& Config::bridgeAddress() const
   {
     return m_bridgeAddress;
@@ -121,6 +127,13 @@ namespace Huenicorn
   }
 
 
+  void Config::setInterpolation(Interpolation::Type interpolation)
+  {
+    m_interpolation = interpolation;
+    _save();
+  }
+
+
   bool Config::_loadConfigFile()
   {
     nlohmann::json jsonConfigRoot = nlohmann::json::object();
@@ -178,12 +191,16 @@ namespace Huenicorn
       m_profileName.emplace(jsonConfigRoot.at("profileName"));
     }
 
+    if(jsonConfigRoot.contains("refreshRate")){
+      m_refreshRate = jsonConfigRoot.at("refreshRate");
+    }
+
     if(jsonConfigRoot.contains("subsampleWidth")){
       m_subsampleWidth = jsonConfigRoot.at("subsampleWidth");
     }
 
-    if(jsonConfigRoot.contains("refreshRate")){
-      m_refreshRate = jsonConfigRoot.at("refreshRate");
+    if(jsonConfigRoot.contains("interpolation")){
+      m_interpolation = jsonConfigRoot.at("interpolation");
     }
 
     if(requireSave){
@@ -201,6 +218,7 @@ namespace Huenicorn
       {"subsampleWidth", m_subsampleWidth},
       {"refreshRate", m_refreshRate},
       {"restServerPort", m_restServerPort},
+      {"interpolation", m_interpolation},
       {"boundBackendIP", m_boundBackendIP}
     };
 

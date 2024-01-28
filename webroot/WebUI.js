@@ -27,6 +27,8 @@ class WebUI
     this.advancedSettingsNode = document.getElementById("advancedSettings");
     this.availableSubsamplesNode = document.getElementById("availableSubsampleWidths");
     this.availableSubsamplesNode.addEventListener("change", (event) => {this._setSubsampleWidth(parseInt(event.target.value));});
+    this.availableInterpolationsNode = document.getElementById("availableInterpolations");
+    this.availableInterpolationsNode.addEventListener("change", (event) => {this._setInterpolation(parseInt(event.target.value));});
     this.refreshRateInputNode = document.getElementById("refreshRate");
     this.refreshRateInputNode.addEventListener("change", (event) => {this._setRefreshRate(event.target.valueAsNumber);});
 
@@ -55,6 +57,10 @@ class WebUI
     let displayInfoPromise = RequestUtils.get("/displayInfo");
     displayInfoPromise.then((data) => {this._displayInfoCallback(data);});
     displayInfoPromise.catch((error) => {log(error);});
+
+    let interpolationInfoPromise = RequestUtils.get("/interpolationInfo");
+    interpolationInfoPromise.then((data) => {this._interpolationInfoCallback(data);});
+    interpolationInfoPromise.catch((error) => {log(error);});
 
     let entertainmentConfigurationsPromise = RequestUtils.get("/entertainmentConfigurations");
     entertainmentConfigurationsPromise.then((data) => {this._entertainmentConfigurationsCallback(data);});
@@ -99,23 +105,6 @@ class WebUI
     let showAdvancedSettings = false;
     this.advancedSettingsCheckbox.checked = showAdvancedSettings;
     this._toggleAdvancedDisplay(showAdvancedSettings);
-
-    this.availableSubsamplesNode.innerHTML = "";
-    for(let subsampleCandidate of this.screenWidget.subsampleResolutionCandidates.reverse()){
-      let newOption = document.createElement("option");
-      let width = subsampleCandidate.x;
-      let height = subsampleCandidate.y;
-      let percentage = width / this.screenWidget.width * 100;
-      percentage = MathUtils.roundPrecision(percentage, 2);
-      newOption.innerHTML = width + "x" + height;
-      newOption.innerHTML += ` (${percentage}%)`;
-      newOption.value = width;
-      this.availableSubsamplesNode.appendChild(newOption);
-    }
-    
-    let proportion = parseInt(this.availableSubsamplesNode.value) / this.screenWidget.width;
-    let gradientColor = StyleUtils.greenRedGradient(proportion);
-    this.availableSubsamplesNode.style.color = gradientColor;
   }
 
 
@@ -244,12 +233,50 @@ class WebUI
     this.refreshRateInputNode.max = displayInfo.maxRefreshRate;
 
     this.screenWidget.setDimensions(x, y, subsampleWidth);
-    this.screenWidget.setSubsampleCandidates(displayInfo.subsampleResolutionCandidates);
+    let subsampleResolutionCandidates = displayInfo.subsampleResolutionCandidates;
+
+    this.availableSubsamplesNode.innerHTML = "";
+    for(let subsampleCandidate of subsampleResolutionCandidates.reverse()){
+      let newOption = document.createElement("option");
+      let width = subsampleCandidate.x;
+      let height = subsampleCandidate.y;
+      let percentage = width / this.screenWidget.width * 100;
+      percentage = MathUtils.roundPrecision(percentage, 2);
+      newOption.innerHTML = width + "x" + height;
+      newOption.innerHTML += ` (${percentage}%)`;
+      newOption.value = width;
+      this.availableSubsamplesNode.appendChild(newOption);
+    }
+    
+    let proportion = parseInt(this.availableSubsamplesNode.value) / this.screenWidget.width;
+    let gradientColor = StyleUtils.greenRedGradient(proportion);
+    this.availableSubsamplesNode.style.color = gradientColor;
 
     this._initAdvancedSettings();
     this.availableSubsamplesNode.value = subsampleWidth.toString();
   }
 
+
+  _interpolationInfoCallback(interpolationInfo)
+  {
+    let availableInterpolations = interpolationInfo.available;
+
+    this.availableInterpolationsNode.innerHTML = "";
+
+    for(let availableInterpolation of availableInterpolations){
+      let newOption = document.createElement("option");
+
+      let key = Object.keys(availableInterpolation)[0];
+      let value = Object.values(availableInterpolation)[0];
+
+      newOption.innerHTML = key;
+      newOption.value = value;
+
+      this.availableInterpolationsNode.appendChild(newOption);
+    }
+
+    this.availableInterpolationsNode.value = interpolationInfo.current;
+  }
 
   _entertainmentConfigurationsCallback(entertainmentConfigurationsData)
   {
@@ -334,6 +361,16 @@ class WebUI
 
       let gradientColor = StyleUtils.greenRedGradient(proportion);
       this.availableSubsamplesNode.style.color = gradientColor;
+    });
+    promise.catch((error) => {log(error);});
+  }
+
+
+  _setInterpolation(interpolation)
+  {
+    let promise = RequestUtils.put("/setInterpolation", JSON.stringify(interpolation));
+    promise.then((interpolationInfo) => {
+      log(interpolationInfo);
     });
     promise.catch((error) => {log(error);});
   }

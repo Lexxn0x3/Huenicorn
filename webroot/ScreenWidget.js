@@ -273,12 +273,6 @@ class ScreenWidget
   }
 
 
-  setSubsampleCandidates(subsampleResolutionCandidates)
-  {
-    this.subsampleResolutionCandidates = subsampleResolutionCandidates;
-  }
-
-
   showWidgets(show)
   {
     let display = show ? "block" : "none";

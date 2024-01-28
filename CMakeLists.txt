@@ -81,6 +81,7 @@ add_executable(${BINARY_NAME}
   src/EntertainmentConfigurationSelector.cpp
   src/HuenicornCore.cpp
   src/ImageProcessing.cpp
+  src/Interpolation.cpp
   src/JsonSerializer.cpp
   src/Logger.cpp
   src/Streamer.cpp
@@ -100,6 +101,7 @@ add_executable(${BINARY_NAME}
   include/Huenicorn/HuenicornCore.hpp
   include/Huenicorn/IGrabber.hpp
   include/Huenicorn/ImageProcessing.hpp
+  include/Huenicorn/Interpolation.hpp
   include/Huenicorn/IRestServer.hpp
   include/Huenicorn/JsonSerializer.hpp
   include/Huenicorn/Logger.hpp

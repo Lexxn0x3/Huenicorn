@@ -16,6 +16,7 @@
 #include <Huenicorn/Streamer.hpp>
 #include <Huenicorn/TickSynchronizer.hpp>
 #include <Huenicorn/UV.hpp>
+#include <Huenicorn/Interpolation.hpp>
 
 
 namespace Huenicorn
@@ -102,6 +103,14 @@ namespace Huenicorn
 
 
     /**
+     * @brief Returns a map of available subsample interpolations
+     * 
+     * @return const Interpolation::Interpolations& available interpolations
+     */
+    const Interpolation::Interpolations& availableInterpolations() const;
+
+
+    /**
      * @brief Returns a list of subsample resolutions
      * 
      * @return std::vector<glm::ivec2> Subsample resolutions
@@ -131,6 +140,14 @@ namespace Huenicorn
      * @return unsigned Maximal refresh rate
      */
     unsigned maxRefreshRate() const;
+
+
+    /**
+     * @brief Returns the current subsample interpolation type
+     * 
+     * @return Interpolation::Type Subsample interpolation type
+     */
+    Interpolation::Type interpolation() const;
 
 
     /**
@@ -196,6 +213,14 @@ namespace Huenicorn
      * @param refreshRate Desired refresh rate for color data streaming
      */
     void setRefreshRate(unsigned refreshRate);
+
+
+    /**
+     * @brief Set the subsample interpolation 
+     * 
+     * @param interpolation Desired interpolation type
+     */
+    void setInterpolation(unsigned interpolation);
 
 
     // Methods

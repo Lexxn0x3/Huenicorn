@@ -4,6 +4,7 @@
 #include <chrono>
 
 #include <Huenicorn/ImageProcessing.hpp>
+#include <Huenicorn/Interpolation.hpp>
 #include <Huenicorn/JsonSerializer.hpp>
 #include <Huenicorn/Logger.hpp>
 #ifdef PIPEWIRE_GRABBER_AVAILABLE
@@ -95,6 +96,18 @@ namespace Huenicorn
   }
 
 
+  Interpolation::Type HuenicornCore::interpolation() const
+  {
+    return m_config.interpolation();
+  }
+
+
+  const Interpolation::Interpolations& HuenicornCore::availableInterpolations() const
+  {
+    return Interpolation::availableInterpolations;
+  }
+
+
   nlohmann::json HuenicornCore::autoDetectedBridge() const
   {
     std::string bridgeAddress;
@@ -181,6 +194,12 @@ namespace Huenicorn
     m_config.setRefreshRate(refreshRate);
     refreshRate = m_config.refreshRate();
     m_tickSynchronizer->setTickInterval(1.0f / refreshRate);
+  }
+
+
+  void HuenicornCore::setInterpolation(unsigned interpolation)
+  {
+    m_config.setInterpolation(static_cast<Interpolation::Type>(interpolation));
   }
 
 

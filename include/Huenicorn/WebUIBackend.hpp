@@ -97,6 +97,14 @@ namespace Huenicorn
 
 
     /**
+     * @brief Handler to get the interpolation informations
+     * 
+     * @param session Pending HTTP connection
+     */
+    void _getInterpolationInfo(const SharedSession& session) const;
+
+
+    /**
      * @brief Handler to set the current entertainment configuration
      * 
      * @param session Pending HTTP connection
@@ -134,6 +142,14 @@ namespace Huenicorn
      * @param session Pending HTTP connection
      */
     void _setRefreshRate(const SharedSession& session) const;
+
+
+    /**
+     * @brief Handler to set the interpolation type
+     * 
+     * @param session Pending HTTP connection
+     */
+    void _setInterpolation(const SharedSession& session) const;
 
 
     /**
