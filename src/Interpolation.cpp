@@ -6,8 +6,8 @@ namespace Huenicorn
   namespace Interpolation
   {
     Interpolations availableInterpolations = {
-      {"Linear", Type::Linear},
       {"Nearest", Type::Nearest},
+      {"Cubic", Type::Cubic},
       {"Area", Type::Area},
     };
   }

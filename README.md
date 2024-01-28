@@ -184,6 +184,10 @@ The data structure of these files is JSON.
 * **credentials**:
   * **clientkey**: (String) 32 hexadecimal characters key provided by initial setup
   * **username**: (String) Base64 or UUID username provided by initial setup
+* **interpolation**:  (Unsigned) Identifier of the desired subsample interpolation function
+  * Nearest = 0 : Cheapest. Low quality on high detail. Can cause the lights to flash
+  * Cubic = 1 : Slow and harsh (kept for test)
+  * Area = 2 : (Recommended) Smooth and respectful of overall content
 * **profile**:  (String) Name of the current user-defined light profile
 * **refreshRate**:  (Unsigned) Screen capture and light update frequency
 * **restServerPort**:  (Unsigned) Port on which the web UI must respond

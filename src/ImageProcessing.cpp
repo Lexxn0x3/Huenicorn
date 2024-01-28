@@ -25,8 +25,8 @@ namespace Huenicorn
           interpolationFlag = cv::InterpolationFlags::INTER_NEAREST;
           break;
 
-        case Interpolation::Type::Linear:
-          interpolationFlag = cv::InterpolationFlags::INTER_LINEAR;
+        case Interpolation::Type::Cubic:
+          interpolationFlag = cv::InterpolationFlags::INTER_CUBIC;
           break;
 
         case Interpolation::Type::Area:

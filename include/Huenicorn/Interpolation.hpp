@@ -10,8 +10,8 @@ namespace Huenicorn
   {
     enum class Type
     {
-      Linear = 0,
-      Nearest = 1,
+      Nearest = 0,
+      Cubic = 1,
       Area = 2
     };
 
