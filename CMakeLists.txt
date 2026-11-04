@@ -79,11 +79,18 @@ configure_file(
   ${EMBEDDED_WEBROOT_HEADER}
 )
 
-# Utilise un chemin relatif et définis QT_RESOURCE_ALIAS :
+# Logo exposed to the QML GUI under a stable qrc alias
 set_source_files_properties(
-  src/Main.qml
+  assets/logo.svg
   PROPERTIES
-  QT_RESOURCE_ALIAS "src/Main.qml"
+  QT_RESOURCE_ALIAS "logo.svg"
+)
+
+# Theme.qml is a QML singleton
+set_source_files_properties(
+  src/Gui/Theme.qml
+  PROPERTIES
+  QT_QML_SINGLETON_TYPE TRUE
 )
 
 # Declare executable
@@ -110,6 +117,9 @@ qt_add_executable(${BINARY_NAME}
   ${CMAKE_CURRENT_SOURCE_DIR}/src/TickSynchronizer.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/src/UV.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/src/WebUIBackend.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/src/Gui/QtController.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/src/Gui/ChannelListModel.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/src/Gui/EntertainmentConfigurationModel.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/include/Huenicorn/ApiTools.hpp
   ${CMAKE_CURRENT_SOURCE_DIR}/include/Huenicorn/Channel.hpp
   ${CMAKE_CURRENT_SOURCE_DIR}/include/Huenicorn/Color.hpp
@@ -135,6 +145,9 @@ qt_add_executable(${BINARY_NAME}
   ${CMAKE_CURRENT_SOURCE_DIR}/include/Huenicorn/TimingDefinitions.hpp
   ${CMAKE_CURRENT_SOURCE_DIR}/include/Huenicorn/UV.hpp
   ${CMAKE_CURRENT_SOURCE_DIR}/include/Huenicorn/WebUIBackend.hpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/include/Huenicorn/Gui/QtController.hpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/include/Huenicorn/Gui/ChannelListModel.hpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/include/Huenicorn/Gui/EntertainmentConfigurationModel.hpp
 
   ${VERSION_HEADER}
   ${EMBEDDED_WEBROOT_HEADER}
@@ -144,8 +157,23 @@ qt_add_qml_module(${BINARY_NAME}
   URI huenicorn_UI
   VERSION 1.0
   QML_FILES
-  src/Main.qml
+  src/Gui/Main.qml
+  src/Gui/Theme.qml
+  src/Gui/SetupPage.qml
+  src/Gui/MainPage.qml
+  src/Gui/ScreenArea.qml
+  RESOURCES
+  assets/logo.svg
+  SOURCES
+  src/Gui/QtController.cpp
+  src/Gui/ChannelListModel.cpp
+  src/Gui/EntertainmentConfigurationModel.cpp
+  include/Huenicorn/Gui/QtController.hpp
+  include/Huenicorn/Gui/ChannelListModel.hpp
+  include/Huenicorn/Gui/EntertainmentConfigurationModel.hpp
 )
+
+
 
 
 add_dependencies(${PROJECT_NAME} generate_version_header generate_webroot_header)

@@ -10,7 +10,8 @@ A free Philips Hue™ screen synchronizer for Gnu/Linux
 
 Huenicorn is a free ambilight driver for Gnu/Linux.
 In other words, Huenicorn allows you to extend the colorful atmosphere of your computer screen to your Hue light bulbs in real-time.
-Huenicorn provides a simple web interface to assign specific portions of screen to the light bulbs you desire and save the settings for further entertainment sessions.
+Huenicorn provides a native Qt 6 graphical interface to assign specific portions of screen to the light bulbs you desire and save the settings for further entertainment sessions.
+A legacy web interface is still available as an opt-in headless mode (see `--web` flag below).
 
 ### Screenshot
 
@@ -39,6 +40,7 @@ Huenicorn 1.0.11 is available.
 ### Dependencies
 
 * [X.Org](https://xorg.freedesktop.org) or [Wayland](https://wayland.freedesktop.org)
+* [Qt 6](https://www.qt.io) (Qt Quick / Qt QML, 6.8+)
 * [OpenCV](https://github.com/opencv/opencv)
 * [Crow](https://crowcpp.org/master)
 * [Mbed-TLS](https://github.com/Mbed-TLS/mbedtls)
@@ -54,7 +56,7 @@ Huenicorn 1.0.11 is available.
 
 ```bash
 # Required dependencies
-sudo pacman -S git cmake make gcc curl opencv mbedtls glm nlohmann-json
+sudo pacman -S git cmake make gcc curl qt6-base qt6-declarative opencv mbedtls glm nlohmann-json
 yay -S crow
 
 # For X11 support
@@ -159,24 +161,22 @@ make
 ```
 
 The output is a standalone executable called "huenicorn".
-When running Huenicorn, make sure that the ```webroot``` directory is in the cwd (current working directory).
 
 ### Executing program
 
 * Run the executable named "huenicorn" in the way you prefer (Terminal if you want some text feedback)
-* Open your favorite web browser at [127.0.0.1:8215](http://127.0.0.1:8215)
-Browser will spawn automatically for the initial setup and as long as no light profile has been saved
-(Service port can be edited in configuration. Default is 8215)
+* The Qt 6 graphical interface opens automatically
+* Run with the `--web` flag to use the legacy web UI instead: it is served at [127.0.0.1:8215](http://127.0.0.1:8215)
+(port can be edited in configuration. Default is 8215). In that mode a browser spawns automatically
+for the initial setup and as long as no light profile has been saved
 
 #### Initial setup
 
-When executed for the first time, Huenicorn spawns the setup page in your favorite browser. It consists of a step-by-step wizard to locate your Hue bridge on the network and register an user on it.
+When executed for the first time, Huenicorn shows a setup wizard in the Qt window. It consists of a step-by-step wizard to locate your Hue bridge on the network (auto-detection or manual IP address) and register an user on it (press the bridge's link button, then click "Pair").
 
-Upon setup proper setup termination, Huenicorn will resume in its ordinary execution workflow.
+Upon proper setup termination, Huenicorn resumes in its ordinary execution workflow and the main window opens.
 
-The webpage can then be refreshed to reach the Light Manager interface.
-
-#### Ordinary execution worflow
+#### Ordinary execution workflow
 
 <details>
   <summary>Wayland-specific step</summary>
@@ -186,17 +186,15 @@ The webpage can then be refreshed to reach the Light Manager interface.
 </details>
 <br/>
 
-Huenicorn will automatically select a the suitable screen-grabber for the graphic session.
+Huenicorn will automatically select the suitable screen-grabber for the graphic session.
 
 At startup, Huenicorn will look for a saved profile and start its color streaming execution.
 
-If you want to assign lights to some portions of your screen, open the web interface and drag'n'drop the available lights from the left list to the right one.
+In the main window, the left panel shows a preview of your screen with the zone allocated to each light. Select a light in the right-side list to edit its screen zone by dragging the corner handles, and adjust its gamma with the slider below the preview.
 
-When a synced light is selected in the list, its portion of allocated screen can be adjusted in the screen partitioning section.
+Use the switch next to each light to enable or disable its synchronization, and the combo box at the top of the side panel to switch between entertainment areas.
 
-Once you are satisfied with the layout, you can save it as a profile and it will be automatically reloaded for further executions.
-
-As long as no profile has been saved, light management interface will spawn automatically at startup.
+Once you are satisfied with the layout, click "Save profile" and it will be automatically reloaded for further executions.
 
 ### Configuration files
 
@@ -265,11 +263,11 @@ This file contains a list of channels related to an entertainment configuration.
 
 #### Shutting down
 
-Huenicorn can be shut down through the web interface or by sending a termination signal.
+Huenicorn can be shut down through the "Shut down" button of the Qt interface (or the web interface in `--web` mode), or by sending a termination signal.
 
 ## Troubleshooting
 
-### I can't see/select any entertainment area from the web interface
+### I can't see/select any entertainment area from the interface
 
 This can happens if the credentials are invalidated for various reasons and can usually be fixed following these steps:
 

@@ -1,5 +1,6 @@
 #pragma once
 
+#include <atomic>
 #include <filesystem>
 #include <optional>
 #include <thread>
@@ -52,6 +53,33 @@ namespace Huenicorn
      * @return const std::string& Current version of Huenicorn
      */
     const std::string& version() const;
+
+
+    /**
+     * @brief Returns whether the initial setup (bridge address + credentials) is complete
+     * 
+     * @return true Setup is complete
+     * @return false Setup is still required
+     */
+    bool initialSetupOk() const;
+
+
+    /**
+     * @brief Returns whether the streaming loop is currently running
+     * 
+     * @return true Streaming loop is running
+     * @return false Streaming loop is not running
+     */
+    bool running() const;
+
+
+    /**
+     * @brief Returns whether the legacy web UI backend is enabled
+     * 
+     * @return true Web UI backend is enabled
+     * @return false Web UI backend is disabled
+     */
+    bool webUIEnabled() const;
 
 
     /**
@@ -167,6 +195,16 @@ namespace Huenicorn
 
 
     // Setters
+    /**
+     * @brief Enables or disables the legacy web UI backend. When disabled, the initial
+     * setup is expected to be driven by an external UI (e.g. the Qt GUI) and no browser
+     * is spawned.
+     * 
+     * @param enabled Whether the web UI backend should be started
+     */
+    void setWebUIEnabled(bool enabled);
+
+
     /**
      * @brief Sets the current entertainment configuration
      * 
@@ -385,7 +423,10 @@ namespace Huenicorn
     std::filesystem::path m_configRoot;
     Config m_config;
 
-    bool m_keepLooping;
+    std::atomic<bool> m_keepLooping{false};
+    std::atomic<bool> m_stopRequested{false};
+    std::atomic<bool> m_running{false};
+    bool m_webUIEnabled{true};
     bool m_openedSetup{false};
     std::unique_ptr<TickSynchronizer> m_tickSynchronizer;
 

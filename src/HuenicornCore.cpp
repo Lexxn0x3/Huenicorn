@@ -31,6 +31,30 @@ namespace Huenicorn
   }
 
 
+  bool HuenicornCore::initialSetupOk() const
+  {
+    return m_config.initialSetupOk();
+  }
+
+
+  bool HuenicornCore::running() const
+  {
+    return m_running;
+  }
+
+
+  bool HuenicornCore::webUIEnabled() const
+  {
+    return m_webUIEnabled;
+  }
+
+
+  void HuenicornCore::setWebUIEnabled(bool enabled)
+  {
+    m_webUIEnabled = enabled;
+  }
+
+
   const std::filesystem::path HuenicornCore::configFilePath() const
   {
     return m_config.configFilePath();
@@ -196,8 +220,22 @@ namespace Huenicorn
   void HuenicornCore::start()
   {
     if(!m_config.initialSetupOk()){
-      if(!_runInitialSetup()){
-        return;
+      if(m_webUIEnabled){
+        if(!_runInitialSetup()){
+          return;
+        }
+      }
+      else{
+        // Setup is driven by an external UI (e.g. the Qt GUI) through the public
+        // validation/registration methods. Wait until the configuration becomes
+        // complete or a stop is requested.
+        while(!m_config.initialSetupOk() && !m_stopRequested){
+          std::this_thread::sleep_for(100ms);
+        }
+
+        if(m_stopRequested){
+          return;
+        }
       }
     }
 
@@ -214,22 +252,27 @@ namespace Huenicorn
       // so the official application would no longer be a requirement
     }
 
-    _initWebUI();
+    if(m_webUIEnabled){
+      _initWebUI();
 
 
-    // Spawn UI if no profiles are found
-    auto optJsonProfile = _getProfile();
-    if(!optJsonProfile.has_value() && !m_openedSetup){
-      std::thread spawnBrowser([this](){_spawnBrowser();});
-      spawnBrowser.detach();
+      // Spawn UI if no profiles are found
+      auto optJsonProfile = _getProfile();
+      if(!optJsonProfile.has_value() && !m_openedSetup){
+        std::thread spawnBrowser([this](){_spawnBrowser();});
+        spawnBrowser.detach();
+      }
     }
 
+    m_running = true;
     _startStreamingLoop();
+    m_running = false;
   }
 
 
   void HuenicornCore::stop()
   {
+    m_stopRequested = true;
     m_keepLooping = false;
   }
 
@@ -564,8 +607,10 @@ namespace Huenicorn
 
     _shutdown();
 
-    m_webUIService.server->stop();
-    m_webUIService.thread.value().join();
+    if(m_webUIEnabled){
+      m_webUIService.server->stop();
+      m_webUIService.thread.value().join();
+    }
   }
 
 

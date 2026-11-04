@@ -1,83 +1,47 @@
-#include <thread>
 #include <memory>
-#include <csignal>
+#include <string>
+#include <thread>
 
+// Huenicorn headers (pulling in Crow) must come before Qt headers because of
+// the Qt "signals" macro clashing with Crow's signals() method
 #include <Huenicorn/Version.hpp>
 #include <Huenicorn/HuenicornCore.hpp>
 #include <Huenicorn/Logger.hpp>
 #include <Huenicorn/PlatformSelector.hpp>
 
+#include <QCoreApplication>
 #include <QGuiApplication>
 #include <QQmlApplicationEngine>
+#include <QQmlContext>
 
-
-
-/**
- * @brief Wrapper around threaded application
- * 
- */
-class Application : public QGuiApplication
-{
-public:
-    Application(int &argc, char **argv)
-        : QGuiApplication(argc, argv)
-    {
-        // Ton code ici
-    }
-  void start()
-  {
-    m_core = std::make_unique<Huenicorn::HuenicornCore>(Huenicorn::Version, Huenicorn::platformAdapter.getConfigFilePath());
-    m_applicationThread.emplace([&](){
-      m_core->start();
-    });
-
-    m_applicationThread.value().join();
-    m_applicationThread.reset();
-    m_core.reset();
-  }
-
-
-  void stop()
-  {
-    if(!m_core){
-      return;
-    }
-
-    m_core->stop();
-  }
-
-
-private:
-  std::unique_ptr<Huenicorn::HuenicornCore> m_core;
-  std::optional<std::thread> m_applicationThread;
-};
-
-
-//Application app;
-
-
-void signalHandler(int signal,Application &app)
-{
-  if(signal == SIGTERM || signal == SIGINT || signal == SIGTSTP){
-    Huenicorn::Logger::log("Closing application");
-    app.stop();
-  }
-}
+#include <Huenicorn/Gui/QtController.hpp>
 
 
 int main(int argc, char *argv[])
 {
   Huenicorn::Logger::log("Starting Huenicorn version ", Huenicorn::Version);
 
-  /*signal(SIGTERM, signalHandler);
-  signal(SIGINT, signalHandler);
-  signal(SIGTSTP, signalHandler);
+  // The legacy web UI backend is kept as an opt-in headless interface
+  bool webUIEnabled = false;
+  for(int i = 1; i < argc; ++i){
+    if(std::string(argv[i]) == "--web"){
+      webUIEnabled = true;
+    }
+  }
 
-  app.start();*/
+  QGuiApplication app(argc, argv);
+  QCoreApplication::setApplicationName("huenicorn");
+  QCoreApplication::setOrganizationName("huenicorn");
 
-  Application app(argc, argv);
+  auto core = std::make_unique<Huenicorn::HuenicornCore>(Huenicorn::Version, Huenicorn::platformAdapter.getConfigFilePath());
+  core->setWebUIEnabled(webUIEnabled);
+
+  std::thread coreThread([&core](){ core->start(); });
+
+  Huenicorn::QtController controller(core.get());
 
   QQmlApplicationEngine engine;
+  engine.rootContext()->setContextProperty("huenicorn", &controller);
   QObject::connect(
       &engine,
       &QQmlApplicationEngine::objectCreationFailed,
@@ -86,5 +50,19 @@ int main(int argc, char *argv[])
       Qt::QueuedConnection);
   engine.loadFromModule("huenicorn_UI", "Main");
 
-  return app.exec();
+  QObject::connect(&app, &QGuiApplication::aboutToQuit, [&](){
+    core->stop();
+    if(coreThread.joinable()){
+      coreThread.join();
+    }
+  });
+
+  int result = app.exec();
+
+  core->stop();
+  if(coreThread.joinable()){
+    coreThread.join();
+  }
+
+  return result;
 }
