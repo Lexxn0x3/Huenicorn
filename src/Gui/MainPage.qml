@@ -96,6 +96,8 @@ Item {
             // right sidebar
             ColumnLayout {
                 Layout.preferredWidth: 350
+                Layout.maximumWidth: 350
+                Layout.fillWidth: false
                 Layout.fillHeight: true
                 spacing: Theme.spacing
 
