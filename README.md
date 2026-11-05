@@ -74,7 +74,7 @@ sudo pacman -S wayland glib2 pipewire
 
 ```bash
 # Required dependencies
-sudo dnf install -y git cmake gcc gcc-c++ opencv-devel json-devel asio-devel curl-devel mbedtls-devel glm-devel
+sudo dnf install -y git cmake gcc gcc-c++ qt6-qtbase-devel qt6-qtdeclarative-devel opencv-devel json-devel asio-devel curl-devel mbedtls-devel glm-devel
 
 # For X11 support
 sudo dnf install -y libXrandr-devel
