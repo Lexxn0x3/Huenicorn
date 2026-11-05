@@ -29,16 +29,26 @@ namespace Huenicorn
     auto fdReadyFuture = fdReadyPromise.get_future();
     m_capture.fdReadyPromise = std::move(fdReadyPromise);
     m_xdgThread.emplace(_initCapture, &m_capture);
-    fdReadyFuture.wait();
 
-    if(!fdReadyFuture.get()){
+    // The portal dialog may require user interaction, allow some time but do
+    // not hang forever if the portal never answers
+    if(fdReadyFuture.wait_for(300s) != std::future_status::ready || !fdReadyFuture.get()){
       _stop();
       throw std::runtime_error("Failed to get monitor file descriptor");
     }
 
+    if(m_capture.pwFd < 0 || m_capture.pwNode == 0){
+      _stop();
+      throw std::runtime_error("Invalid pipewire node or file descriptor");
+    }
+
     auto configDataReadyFuture = m_pwData.screenDataReadyPromise.get_future();
     m_pipewireThread.emplace(_pipewireThread, &m_capture, &m_pwData);
-    configDataReadyFuture.wait();
+
+    if(configDataReadyFuture.wait_for(30s) != std::future_status::ready || !configDataReadyFuture.get()){
+      _stop();
+      throw std::runtime_error("Timed out waiting for pipewire stream format");
+    }
   }
 
 
@@ -92,14 +102,22 @@ namespace Huenicorn
 
   void PipewireGrabber::_onCoreErrorCallback(void* userData, uint32_t id, int seq, int res, const char* message)
   {
-    (void)userData;
-    //PipewireData* pw = static_cast<PipewireData*>(userData);
+    PipewireData* pw = static_cast<PipewireData*>(userData);
 
     std::stringstream ss;
     ss << "[pipewire] Error id: " << id << " seq: " << seq << " res: " << res << "" << g_strerror(res) << " " << message << std::endl;
     Logger::error(ss.str());
 
-    //pw_thread_loop_signal(pw->loop, FALSE);
+    // Quit the loop so the pipewire thread terminates instead of spinning on a
+    // broken connection
+    if(pw && pw->loop){
+      pw_main_loop_quit(pw->loop);
+    }
+
+    if(pw && !pw->promiseSetAlready){
+      pw->screenDataReadyPromise.set_value(false);
+      pw->promiseSetAlready = true;
+    }
   }
 
 
@@ -208,10 +226,31 @@ namespace Huenicorn
     streamEvents.param_changed = _onStreamParamChanged;
     streamEvents.process = _onStreamProcess;
 
+    if(capture->pwFd < 0 || capture->pwNode == 0){
+      Logger::error("Invalid pipewire capture data, aborting pipewire thread");
+      if(!pw->promiseSetAlready){
+        pw->screenDataReadyPromise.set_value(false);
+        pw->promiseSetAlready = true;
+      }
+      return;
+    }
+
     pw->loop = pw_main_loop_new(NULL);
     pw->context = pw_context_new(pw_main_loop_get_loop(pw->loop), NULL, 0);
 
     auto core = pw_context_connect_fd(pw->context, fcntl(capture->pwFd, F_DUPFD_CLOEXEC, 5), NULL, 0);
+
+    if(!core){
+      Logger::error("Failed to connect to pipewire");
+      if(!pw->promiseSetAlready){
+        pw->screenDataReadyPromise.set_value(false);
+        pw->promiseSetAlready = true;
+      }
+      g_clear_pointer(&pw->context, pw_context_destroy);
+      g_clear_pointer(&pw->loop, pw_main_loop_destroy);
+      pw_deinit();
+      return;
+    }
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wpedantic"

@@ -478,11 +478,17 @@ namespace Huenicorn
     }
     catch(const std::exception& e){
       Logger::error(e.what());
-      return false;
+      // Falling back on dummy grabber so the application stays usable
+      m_grabber = std::make_unique<DummyGrabber>(&m_config);
+      Logger::log("Started DummyGrabber.");
+      return true;
     }
 
     if(!m_grabber){
       Logger::error("Could not find a compatible grabber for your graphic session.");
+      m_grabber = std::make_unique<DummyGrabber>(&m_config);
+      Logger::log("Started DummyGrabber.");
+      return true;
     }
 
     return false;

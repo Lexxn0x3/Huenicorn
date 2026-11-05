@@ -189,6 +189,15 @@ namespace Huenicorn
     }
 
 
+    void setFdReady(Capture* capture, bool ready)
+    {
+      if(!capture->fdPromiseSet){
+        capture->fdPromiseSet = true;
+        capture->fdReadyPromise.set_value(ready);
+      }
+    }
+
+
     void onPipewireRemoteOpenedCallback(GObject* source, GAsyncResult* res, void* userData)
     {
       Capture* capture = static_cast<Capture*>(userData);
@@ -201,6 +210,7 @@ namespace Huenicorn
           Logger::error("[pipewire] error retrieving pipewire fd: ", std::string(error->message));
         }
 
+        setFdReady(capture, false);
         return;
       }
 
@@ -213,11 +223,12 @@ namespace Huenicorn
           Logger::error("[pipewire] error retrieving pipewire fd: ", std::string(error->message));
         }
 
+        setFdReady(capture, false);
         return;
       }
 
       capture->pwFd = pwFd;
-      capture->fdReadyPromise.set_value(true);
+      setFdReady(capture, true);
     }
 
 
@@ -248,7 +259,7 @@ namespace Huenicorn
 
       if(response != 0){
         Logger::warn("Failed to start screencast, denied or cancelled by user.");
-        capture->fdReadyPromise.set_value(false);
+        setFdReady(capture, false);
         return;
       }
 
@@ -270,8 +281,7 @@ namespace Huenicorn
 
     void onStartedCallback(GObject* source, GAsyncResult* res, void* userData)
     {
-      DbusCallData* call = static_cast<DbusCallData*>(userData);
-      Capture* capture = call->capture;
+      Capture* capture = static_cast<Capture*>(userData);
 
       g_autoptr(GError) error = NULL;
       g_autoptr(GVariant) result = g_dbus_proxy_call_finish(G_DBUS_PROXY(source), res, &error);
@@ -279,8 +289,8 @@ namespace Huenicorn
       if(error){
         if(!g_error_matches(error, G_IO_ERROR, G_IO_ERROR_CANCELLED)){
           Logger::error("error selecting screencast source: ", std::string(error->message));
-          capture->fdReadyPromise.set_value(false);
         }
+        setFdReady(capture, false);
         return;
       }
     }
@@ -290,13 +300,13 @@ namespace Huenicorn
     {
       try{
         StringPair pathAndToken = portalCreatePath(CreatePathTokenType::Request);
-        DbusCallData* call = subscribeToSignal(capture, pathAndToken.first.c_str(), onStartResponseReceivedCallback);
+        subscribeToSignal(capture, pathAndToken.first.c_str(), onStartResponseReceivedCallback);
 
         GVariantBuilder builder;
         g_variant_builder_init(&builder, G_VARIANT_TYPE_VARDICT);
         g_variant_builder_add(&builder, "{sv}", "handle_token", g_variant_new_string(pathAndToken.second.c_str()));
 
-        g_dbus_proxy_call(getScreencastPortalProxy(), "Start", g_variant_new("(osa{sv})", capture->sessionHandle, "", &builder), G_DBUS_CALL_FLAGS_NONE, -1, capture->cancellable, onStartedCallback, call);
+        g_dbus_proxy_call(getScreencastPortalProxy(), "Start", g_variant_new("(osa{sv})", capture->sessionHandle, "", &builder), G_DBUS_CALL_FLAGS_NONE, -1, capture->cancellable, onStartedCallback, capture);
       }
       catch(const std::exception& e){
         Logger::error(e.what());
@@ -323,6 +333,7 @@ namespace Huenicorn
 
       if(response != 0){
         Logger::error("failed to select source, denied or cancelled by user");
+        setFdReady(capture, false);
         return;
       }
 
@@ -332,7 +343,7 @@ namespace Huenicorn
 
     void onSourceSelectedCallback(GObject* source, GAsyncResult* res, void* userData)
     {
-      (void)userData;
+      Capture* capture = static_cast<Capture*>(userData);
 
       g_autoptr(GError) error = NULL;
       g_autoptr(GVariant) result = g_dbus_proxy_call_finish(G_DBUS_PROXY(source), res, &error);
@@ -342,6 +353,7 @@ namespace Huenicorn
           Logger::error("error selecting screencast source: ", std::string(error->message));
         }
 
+        setFdReady(capture, false);
         return;
       }
     }
@@ -350,7 +362,7 @@ namespace Huenicorn
     void selectSource(Capture* capture)
     {
       StringPair pathAndToken = portalCreatePath(CreatePathTokenType::Request);
-      DbusCallData* call = subscribeToSignal(capture, pathAndToken.first.c_str(), onSelectSourceResponseReceivedCallback);
+      subscribeToSignal(capture, pathAndToken.first.c_str(), onSelectSourceResponseReceivedCallback);
 
       GVariantBuilder builder;
       g_variant_builder_init(&builder, G_VARIANT_TYPE_VARDICT);
@@ -373,7 +385,7 @@ namespace Huenicorn
         g_variant_builder_add(&builder, "{sv}", "persist_mode", g_variant_new_uint32(2));
       }
 
-      g_dbus_proxy_call(getScreencastPortalProxy(), "SelectSources", g_variant_new("(oa{sv})", capture->sessionHandle, &builder), G_DBUS_CALL_FLAGS_NONE, -1, capture->cancellable, onSourceSelectedCallback, call);
+      g_dbus_proxy_call(getScreencastPortalProxy(), "SelectSources", g_variant_new("(oa{sv})", capture->sessionHandle, &builder), G_DBUS_CALL_FLAGS_NONE, -1, capture->cancellable, onSourceSelectedCallback, capture);
     }
 
 
@@ -395,9 +407,16 @@ namespace Huenicorn
 
       if(response != 0){
         Logger::warn("failed to create session, denied or cancelled by user");
+        setFdReady(capture, false);
+        return;
       }
 
       g_autoptr(GVariant) sessionHandleVariant = g_variant_lookup_value(result, "session_handle", NULL);
+      if(!sessionHandleVariant){
+        Logger::error("portal response has no session_handle");
+        setFdReady(capture, false);
+        return;
+      }
       capture->sessionHandle = g_variant_dup_string(sessionHandleVariant, NULL);
 
       selectSource(capture);
@@ -406,7 +425,7 @@ namespace Huenicorn
 
     void onSessionCreatedCallback(GObject* source, GAsyncResult* res, void* userData)
     {
-      (void)userData;
+      Capture* capture = static_cast<Capture*>(userData);
 
       g_autoptr(GError) error = NULL;
       g_autoptr(GVariant) result = g_dbus_proxy_call_finish(G_DBUS_PROXY(source), res, &error);
@@ -417,6 +436,7 @@ namespace Huenicorn
           Logger::error("error creating screencast session: ", std::string(error->message));
         }
 
+        setFdReady(capture, false);
         return;
       }
     }
@@ -427,14 +447,14 @@ namespace Huenicorn
       StringPair requestPathAndToken = portalCreatePath(CreatePathTokenType::Request);
       StringPair sessionPathAndToken = portalCreatePath(CreatePathTokenType::Session);
 
-      DbusCallData* call = subscribeToSignal(capture, requestPathAndToken.first.c_str(), onCreateSessionResponseReceivedCallback);
+      subscribeToSignal(capture, requestPathAndToken.first.c_str(), onCreateSessionResponseReceivedCallback);
 
       GVariantBuilder builder;
       g_variant_builder_init(&builder, G_VARIANT_TYPE_VARDICT);
       g_variant_builder_add(&builder, "{sv}", "handle_token", g_variant_new_string(requestPathAndToken.second.c_str()));
       g_variant_builder_add(&builder, "{sv}", "session_handle_token", g_variant_new_string(sessionPathAndToken.second.c_str()));
 
-      g_dbus_proxy_call(getScreencastPortalProxy(), "CreateSession", g_variant_new("(a{sv})", &builder), G_DBUS_CALL_FLAGS_NONE, -1, capture->cancellable, onSessionCreatedCallback, call);
+      g_dbus_proxy_call(getScreencastPortalProxy(), "CreateSession", g_variant_new("(a{sv})", &builder), G_DBUS_CALL_FLAGS_NONE, -1, capture->cancellable, onSessionCreatedCallback, capture);
     }
 
 
@@ -443,12 +463,16 @@ namespace Huenicorn
       capture->cancellable = g_cancellable_new();
       GDBusConnection* connection = portalGetDbusConnection();
       if(!connection){
+        Logger::error("No D-Bus session connection, cannot use the screencast portal");
+        setFdReady(capture, false);
         return false;
       }
 
       GDBusProxy* proxy = getScreencastPortalProxy();
       if(!proxy){
-        return true;
+        Logger::error("Screencast portal is not available on the session bus");
+        setFdReady(capture, false);
+        return false;
       }
 
       createSession(capture);
