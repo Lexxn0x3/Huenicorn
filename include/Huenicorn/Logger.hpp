@@ -41,20 +41,20 @@ namespace Huenicorn
       switch(logLevel)
       {
         case LogLevel::Message:
-          std::cout << oss.str() << "\n";
+          std::cout << oss.str() << "\n" << std::flush;
           break;
 
         case LogLevel::Warning:
-          std::cout << "[Warning] : " << oss.str() << "\n";
+          std::cout << "[Warning] : " << oss.str() << "\n" << std::flush;
           break;
 
         case LogLevel::Error:
-          std::cerr << "[Error] : " << oss.str() << "\n";
+          std::cerr << "[Error] : " << oss.str() << "\n" << std::flush;
           break;
 
   #ifndef NDEBUG
         case LogLevel::Debug:
-          std::cout << "[Debug] : " << oss.str() << "\n";
+          std::cout << "[Debug] : " << oss.str() << "\n" << std::flush;
           break;
   #endif // NDEBUG
 

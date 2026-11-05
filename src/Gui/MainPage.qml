@@ -53,6 +53,26 @@ Item {
             }
         }
 
+        Rectangle {
+            Layout.fillWidth: true
+            visible: !huenicorn.running
+            color: Theme.accentSoft
+            border.color: Theme.accent
+            border.width: 1
+            radius: Theme.radiusSmall
+            implicitHeight: bannerLabel.implicitHeight + 16
+
+            Label {
+                id: bannerLabel
+                anchors.centerIn: parent
+                width: parent.width - 24
+                wrapMode: Text.WordWrap
+                horizontalAlignment: Text.AlignHCenter
+                color: Theme.text
+                text: "Waiting for screen capture — pick your screen in the portal dialog and click \"Share\"."
+            }
+        }
+
         RowLayout {
             Layout.fillWidth: true
             Layout.fillHeight: true

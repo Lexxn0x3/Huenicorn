@@ -13,6 +13,8 @@
 #include <QGuiApplication>
 #include <QQmlApplicationEngine>
 #include <QQmlContext>
+#include <QQmlError>
+#include <QWindow>
 
 #include <Huenicorn/Gui/QtController.hpp>
 
@@ -42,13 +44,41 @@ int main(int argc, char *argv[])
 
   QQmlApplicationEngine engine;
   engine.rootContext()->setContextProperty("huenicorn", &controller);
+
+  // Forward QML warnings/errors to the log so UI issues are visible from a terminal
+  QObject::connect(
+      &engine,
+      &QQmlApplicationEngine::warnings,
+      &app,
+      [](const QList<QQmlError>& warnings){
+        for(const QQmlError& warning : warnings){
+          Huenicorn::Logger::error("QML: ", warning.toString().toStdString());
+        }
+      });
+
   QObject::connect(
       &engine,
       &QQmlApplicationEngine::objectCreationFailed,
       &app,
-      []() { QCoreApplication::exit(-1); },
+      []() {
+        Huenicorn::Logger::error("Failed to create the QML interface");
+        QCoreApplication::exit(-1);
+      },
       Qt::QueuedConnection);
+
   engine.loadFromModule("huenicorn_UI", "Main");
+
+  const auto rootObjects = engine.rootObjects();
+  if(rootObjects.isEmpty()){
+    Huenicorn::Logger::error("QML root object was not created, no window will be shown");
+  }
+  else{
+    if(auto* window = qobject_cast<QWindow*>(rootObjects.first())){
+      window->showNormal();
+      window->requestActivate();
+    }
+    Huenicorn::Logger::log("Qt GUI window shown");
+  }
 
   QObject::connect(&app, &QGuiApplication::aboutToQuit, [&](){
     core->stop();

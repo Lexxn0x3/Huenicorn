@@ -239,8 +239,16 @@ namespace Huenicorn
       }
     }
 
+    if(m_stopRequested){
+      return;
+    }
+
     if(!_initGrabber()){
       Logger::error("Could not start any grabber");
+      return;
+    }
+
+    if(m_stopRequested){
       return;
     }
 
@@ -250,6 +258,10 @@ namespace Huenicorn
 
       // TODO : Add tool to create entertainment configurations inside Huenicorn
       // so the official application would no longer be a requirement
+    }
+
+    if(m_stopRequested){
+      return;
     }
 
     if(m_webUIEnabled){
@@ -601,7 +613,7 @@ namespace Huenicorn
     m_tickSynchronizer->start();
 
     m_keepLooping = true;
-    while(m_keepLooping){
+    while(m_keepLooping && !m_stopRequested){
       _update();
 
       if(!m_tickSynchronizer->sync()){
